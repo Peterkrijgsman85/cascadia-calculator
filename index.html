@@ -21,42 +21,49 @@
             display: flex;
             flex-direction: column;
             align-items: center;
-            padding: 10px;
+            padding: 15px;
             margin: 0;
         }
 
         .card { 
             background: white; 
-            padding: 20px; 
+            padding: 25px; 
             border-radius: 16px; 
             box-shadow: 0 10px 25px rgba(0,0,0,0.05);
             width: 100%;
             max-width: 1000px;
             box-sizing: border-box;
+            margin-bottom: 25px;
         }
 
-        h1 { text-align: center; color: var(--accent); margin: 0 0 5px 0; font-size: 1.5rem; }
-        .subtitle { text-align: center; color: #64748b; margin-bottom: 20px; font-size: 0.85rem; }
+        h1 { text-align: center; color: var(--accent); margin-bottom: 5px; }
+        .subtitle { text-align: center; color: #64748b; margin-bottom: 20px; font-size: 0.9rem; }
         
         .setup { text-align: center; margin-bottom: 20px; padding-bottom: 15px; border-bottom: 1px solid var(--border); }
 
-        /* De Tabel / Grid Layout */
+        /* Container voor horizontaal scrollen op mobiel */
+        .table-responsive {
+            width: 100%;
+            overflow-x: auto;
+            -webkit-overflow-scrolling: touch;
+            border-radius: 8px;
+            border: 1px solid var(--border);
+        }
+
         .score-table { 
             display: grid; 
             gap: 1px; 
             background-color: var(--border);
-            border: 1px solid var(--border);
-            border-radius: 8px;
-            overflow: hidden;
+            min-width: 500px; /* Garandeert dat het niet te krap wordt op mobiel */
         }
 
-        .cell { background: white; padding: 10px; display: flex; align-items: center; justify-content: center; }
-        .header-cell { background: #f1f5f9; font-weight: bold; text-transform: uppercase; font-size: 0.7rem; color: #64748b; }
-        .section-header { background: #f8fafc; font-weight: bold; grid-column: 1 / -1; justify-content: flex-start; padding-left: 15px; border-top: 1px solid var(--border); font-size: 0.8rem; }
-        .label-cell { justify-content: flex-start; font-weight: 600; font-size: 0.85rem; background: #fdfdfd; }
+        .cell { background: white; padding: 12px; display: flex; align-items: center; justify-content: center; }
+        .header-cell { background: #f1f5f9; font-weight: bold; text-transform: uppercase; font-size: 0.75rem; color: #64748b; }
+        .section-header { background: #f8fafc; font-weight: bold; grid-column: 1 / -1; justify-content: flex-start; padding-left: 15px; border-top: 2px solid var(--border); font-size: 0.85rem; }
+        .label-cell { justify-content: flex-start; font-weight: 600; font-size: 0.9rem; background: #fdfdfd; min-width: 160px; }
 
         input[type="number"] {
-            width: 50px;
+            width: 55px;
             padding: 8px;
             border: 1px solid #cbd5e1;
             border-radius: 4px;
@@ -69,50 +76,47 @@
         .total-cell { background: var(--accent); color: white; }
         .total-cell input { background: transparent; border: none; color: white; font-weight: bold; pointer-events: none; }
 
-        .btn-reset { margin-top: 20px; width: 100%; padding: 12px; background: #ef4444; color: white; border: none; border-radius: 8px; font-weight: bold; cursor: pointer; }
+        .btn-reset { margin-top: 20px; width: 100%; padding: 15px; background: #ef4444; color: white; border: none; border-radius: 8px; font-weight: bold; cursor: pointer; font-size: 1rem; }
 
-        /* Mobiele optimalisatie: De "Stack" weergave */
-        @media (max-width: 600px) {
-            h1 { font-size: 1.2rem; }
-            .score-table { 
-                grid-template-columns: 1fr 1fr !important; /* Forceer 2 kolommen op mobiel */
-            }
-            .header-cell:not(:first-child) { font-size: 0.8rem; background: var(--accent); color: white; }
-            .section-header { font-size: 0.9rem; text-align: center; justify-content: center; background: #e2e8f0; }
-            
-            /* Tip voor kantelen alleen tonen op kleine schermen */
-            .orientation-tip {
-                display: block;
-                background: #fff3cd;
-                color: #856404;
-                padding: 10px;
-                border-radius: 8px;
-                margin-bottom: 15px;
-                font-size: 0.8rem;
-                text-align: center;
-                border: 1px solid #ffeeba;
-            }
+        /* Kantel tip */
+        .orientation-tip {
+            display: none;
+            background: #e1f5fe;
+            color: #0277bd;
+            padding: 10px;
+            border-radius: 8px;
+            margin-bottom: 15px;
+            font-size: 0.85rem;
+            text-align: center;
+            border: 1px solid #b3e5fc;
         }
 
-        @media (min-width: 601px) {
-            .orientation-tip { display: none; }
+        @media (max-width: 768px) {
+            .orientation-tip { display: block; }
         }
 
-        .rules-container { width: 100%; max-width: 1000px; padding: 20px; box-sizing: border-box; }
+        /* Regels Sectie */
+        .rules-container { width: 100%; max-width: 1000px; background: white; padding: 30px; border-radius: 16px; border: 1px solid var(--border); box-sizing: border-box; line-height: 1.6; }
+        .rules-container h2 { color: var(--primary); border-bottom: 2px solid var(--accent); padding-bottom: 8px; margin-top: 0; }
+        .rules-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 25px; margin-top: 20px; }
+        .rule-box h3 { margin-top: 0; color: var(--accent); font-size: 1.1rem; }
+        .rule-box ul { padding-left: 20px; margin: 0; }
+        .rule-box li { margin-bottom: 8px; font-size: 0.9rem; }
+        .info-tag { font-size: 0.7rem; color: #94a3b8; font-weight: normal; margin-left: 5px; }
     </style>
 </head>
 <body>
 
 <div class="card">
     <h1>Cascadia Calculator</h1>
-    <p class="subtitle">Wapiti's, Buizerds & Leefgebieden</p>
+    <p class="subtitle">Officiële Nederlandse Puntentelling</p>
 
     <div class="orientation-tip">
-        📱 <strong>Tip:</strong> Kantel je telefoon voor een beter overzicht bij 3 of 4 spelers!
+        📱 <strong>Tip:</strong> Kantel je scherm voor een volledig overzicht of swipe opzij in de tabel.
     </div>
 
     <div class="setup">
-        <label>Spelers: </label>
+        <label>Aantal spelers: </label>
         <select id="playerCount" onchange="initApp()">
             <option value="2" selected>2 Spelers</option>
             <option value="3">3 Spelers</option>
@@ -120,14 +124,47 @@
         </select>
     </div>
 
-    <div id="scoreTable" class="score-table"></div>
+    <div class="table-responsive">
+        <div id="scoreTable" class="score-table"></div>
+    </div>
 
     <button class="btn-reset" onclick="resetScores()">Reset Alle Scores</button>
 </div>
 
-<div class="rules-container" style="font-size: 0.9rem; opacity: 0.8;">
-    <hr>
-    <p><em>Bonussen (+2/+3) worden automatisch berekend op basis van je grootste leefgebieden.</em></p>
+<div class="rules-container">
+    <h2>Uitleg Scoreverloop</h2>
+    <div class="rules-grid">
+        <div class="rule-box">
+            <h3>🐻 Wildlifekaarten</h3>
+            <ul>
+                <li>Diersoorten: Beer, Wapiti, Buizerd, Vos en Zalm.</li>
+                <li>Scoor op basis van de gekozen kaarten (A, B, C of D).</li>
+                <li>Vul per dier het totaal aantal punten in.</li>
+            </ul>
+        </div>
+        <div class="rule-box">
+            <h3>🏞 Grootste Leefgebieden</h3>
+            <ul>
+                <li>Tel de tegels van je grootste aaneengesloten groep per terreintype.</li>
+                <li>Elke tegel in die groep is <strong>1 punt</strong> waard.</li>
+            </ul>
+        </div>
+        <div class="rule-box">
+            <h3>🏆 Meerderheidsbonussen</h3>
+            <ul>
+                <li><strong>2 spelers:</strong> Grootste +2, gelijkspel beiden +1.</li>
+                <li><strong>3-4 spelers:</strong> 1e plek +3, 2e plek +1.</li>
+                <li>Gedeelde 1e plek: beiden +2 (geen 2e plek bonus).</li>
+                <li><em>Berekening gebeurt automatisch in deze tool!</em></li>
+            </ul>
+        </div>
+        <div class="rule-box">
+            <h3>🌲 Natuurfiches</h3>
+            <ul>
+                <li>Elke ongebruikte dennenappel aan het eind is <strong>1 punt</strong> waard.</li>
+            </ul>
+        </div>
+    </div>
 </div>
 
 <script>
@@ -150,13 +187,11 @@
     function initApp() {
         const numPlayers = parseInt(document.getElementById('playerCount').value);
         const table = document.getElementById('scoreTable');
-        
-        // Desktop instelling: Kolommen naast elkaar
-        table.style.gridTemplateColumns = `140px repeat(${numPlayers}, 1fr)`;
+        table.style.gridTemplateColumns = `180px repeat(${numPlayers}, 1fr)`;
         
         let html = '';
-        html += `<div class="cell header-cell">📍</div>`;
-        for (let i = 1; i <= numPlayers; i++) html += `<div class="cell header-cell">S${i}</div>`;
+        html += `<div class="cell header-cell">Categorie</div>`;
+        for (let i = 1; i <= numPlayers; i++) html += `<div class="cell header-cell">Speler ${i}</div>`;
 
         html += `<div class="cell section-header">Dierenkaarten</div>`;
         wildlife.forEach(cat => {
@@ -166,7 +201,7 @@
             }
         });
 
-        html += `<div class="cell section-header">Leefgebieden</div>`;
+        html += `<div class="cell section-header">Grootste Leefgebieden <span class="info-tag">(1 pt/tegel)</span></div>`;
         habitats.forEach(cat => {
             html += `<div class="cell label-cell">${cat.name}</div>`;
             for (let i = 1; i <= numPlayers; i++) {
@@ -174,19 +209,19 @@
             }
         });
 
-        html += `<div class="cell section-header">Bonussen</div>`;
-        html += `<div class="cell label-cell">Bonus</div>`;
+        html += `<div class="cell section-header">Leefgebied Bonussen</div>`;
+        html += `<div class="cell label-cell">Bonus Totaal</div>`;
         for (let i = 1; i <= numPlayers; i++) {
             html += `<div class="cell"><input type="number" id="bonus-p${i}" class="bonus-input" value="0" readonly></div>`;
         }
 
-        html += `<div class="cell section-header">Fiches</div>`;
-        html += `<div class="cell label-cell">🌲 Fiches</div>`;
+        html += `<div class="cell section-header">Overig</div>`;
+        html += `<div class="cell label-cell">🌲 Natuurfiches</div>`;
         for (let i = 1; i <= numPlayers; i++) {
             html += `<div class="cell"><input type="number" class="score-input p${i} other" value="0" min="0" oninput="calculate()"></div>`;
         }
 
-        html += `<div class="cell label-cell total-label">TOTAAL</div>`;
+        html += `<div class="cell label-cell total-label">EINDTOTAAL</div>`;
         for (let i = 1; i <= numPlayers; i++) {
             html += `<div class="cell total-cell"><input type="number" id="total-p${i}" value="0" readonly></div>`;
         }
@@ -201,8 +236,7 @@
         habitats.forEach(hab => {
             let scores = [];
             for (let i = 1; i <= numPlayers; i++) {
-                let el = document.querySelector(`.p${i}.hab-size[data-hab="${hab.id}"]`);
-                let val = el ? (parseInt(el.value) || 0) : 0;
+                let val = parseInt(document.querySelector(`.p${i}.hab-size[data-hab="${hab.id}"]`).value) || 0;
                 scores.push({ player: i - 1, score: val });
             }
 
@@ -229,14 +263,12 @@
         });
 
         for (let i = 1; i <= numPlayers; i++) {
-            let bonusEl = document.getElementById(`bonus-p${i}`);
-            if(bonusEl) bonusEl.value = playerBonuses[i-1];
+            document.getElementById(`bonus-p${i}`).value = playerBonuses[i-1];
             let total = playerBonuses[i-1];
             document.querySelectorAll(`.p${i}`).forEach(input => {
                 total += parseInt(input.value) || 0;
             });
-            let totalEl = document.getElementById(`total-p${i}`);
-            if(totalEl) totalEl.value = total;
+            document.getElementById(`total-p${i}`).value = total;
         }
     }
 
