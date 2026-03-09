@@ -119,14 +119,14 @@
         <div class="rule-box">
             <h3>🐻 Wildlifekaarten</h3>
             <ul>
-                <li>Elk diersoort (Beer, Eland, Havik, Vos, Zalm) heeft een eigen scorekaart.</li>
+                <li>Elk diersoort (Beer, Wapiti, Buizerd, Vos, Zalm) heeft een eigen scorekaart.</li>
                 <li>Punten worden verdiend op basis van specifieke patronen of groepen op je bord.</li>
                 <li>Vul per dier het totaal aantal behaalde punten in.</li>
             </ul>
         </div>
 
         <div class="rule-box">
-            <h3>🏞 Habitatgebieden</h3>
+            <h3>🏞 Leefgebieden</h3>
             <ul>
                 <li>Tel je <strong>grootste aaneengesloten groep</strong> tegels van hetzelfde type.</li>
                 <li>Elke tegel in die groep is <strong>1 punt</strong> waard.</li>
@@ -145,7 +145,7 @@
         </div>
 
         <div class="rule-box">
-            <h3>🌲 Natuurtokens</h3>
+            <h3>🌲 Natuurfiches</h3>
             <ul>
                 <li>Elke ongebruikte dennenappel (natuurtoken) die je aan het eind van het spel nog bezit, is <strong>1 punt</strong> waard.</li>
             </ul>
@@ -156,13 +156,13 @@
 <script>
     const wildlife = [
         { id: 'bear', name: '🐻 Beren' },
-        { id: 'elk', name: '🦌 Elanden' },
-        { id: 'hawk', name: '🦅 Haviken' },
+        { id: 'elk', name: '🦌 Wapiti's' },
+        { id: 'hawk', name: '🦅 Buizerds' },
         { id: 'fox', name: '🦊 Vossen' },
         { id: 'salmon', name: '🐟 Zalmen' }
     ];
 
-    const habitats = [
+    const itats = [
         { id: 'mtn', name: '🏔 Bergen' },
         { id: 'for', name: '🌲 Bossen' },
         { id: 'pra', name: '🌾 Prairie' },
@@ -187,7 +187,7 @@
             }
         });
 
-        html += `<div class="cell section-header">Grootste Habitats <span class="info-tag">(1 punt per tegel)</span></div>`;
+        html += `<div class="cell section-header">Grootste leefgebied <span class="info-tag">(1 punt per tegel)</span></div>`;
         habitats.forEach(cat => {
             html += `<div class="cell label-cell">${cat.name}</div>`;
             for (let i = 1; i <= numPlayers; i++) {
@@ -195,14 +195,14 @@
             }
         });
 
-        html += `<div class="cell section-header">Habitat Bonussen</div>`;
+        html += `<div class="cell section-header">Leefgebied Bonussen</div>`;
         html += `<div class="cell label-cell">Bonus Totaal</div>`;
         for (let i = 1; i <= numPlayers; i++) {
             html += `<div class="cell"><input type="number" id="bonus-p${i}" class="bonus-input" value="0" readonly></div>`;
         }
 
         html += `<div class="cell section-header">Overig</div>`;
-        html += `<div class="cell label-cell">🌲 Natuurtokens</div>`;
+        html += `<div class="cell label-cell">🌲 Natuurfiches</div>`;
         for (let i = 1; i <= numPlayers; i++) {
             html += `<div class="cell"><input type="number" class="score-input p${i} other" value="0" min="0" oninput="calculate()"></div>`;
         }
