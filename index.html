@@ -107,9 +107,10 @@
         .rules-container { width: 100%; max-width: 1000px; background: white; padding: 30px; border-radius: 16px; border: 1px solid var(--border); box-sizing: border-box; line-height: 1.6; }
         .rules-container h2 { color: var(--primary); border-bottom: 2px solid var(--accent); padding-bottom: 8px; margin-top: 0; }
         .rules-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 25px; margin-top: 20px; }
-        .rule-box h3 { margin-top: 0; color: var(--accent); font-size: 1.1rem; }
-        .rule-box ul { padding-left: 20px; margin: 0; }
+        .rule-box h3 { margin-top: 0; color: var(--accent); font-size: 1.1rem; border-bottom: 1px solid #eee; padding-bottom: 5px; }
+        .rule-box ul { padding-left: 20px; margin: 10px 0 0 0; }
         .rule-box li { margin-bottom: 8px; font-size: 0.9rem; }
+        .landmark-badge { background: #eef2ff; color: #4338ca; padding: 2px 6px; border-radius: 4px; font-size: 0.7rem; font-weight: bold; text-transform: uppercase; }
     </style>
 </head>
 <body>
@@ -150,30 +151,33 @@
     <h2>Uitleg Scoreverloop</h2>
     <div class="rules-grid">
         <div class="rule-box">
-            <h3>🐻 Wildlifekaarten</h3>
+            <h3>🐻 Wildlife</h3>
             <ul>
-                <li>Elk diersoort (Beer, Wapiti, Buizerd, Vos, Zalm) heeft een eigen scorekaart.</li>
-                <li>Punten worden verdiend op basis van specifieke patronen of groepen.</li>
+                <li><strong>Dierenkaarten:</strong> Gebruik de scorekaart per diersoort. Tel de punten op basis van de gevormde patronen.</li>
+                <li><strong>Vossen:</strong> Scoren vaak op basis van aangrenzende dieren.</li>
+                <li><strong>Zalmen:</strong> Scoren op basis van de lengte van de 'run'.</li>
             </ul>
         </div>
         <div class="rule-box">
-            <h3>🏞 Grootste Leefgebieden</h3>
+            <h3>🏞 Gebieden & Bonussen</h3>
             <ul>
-                <li>Tel de <strong>grootste aaneengesloten groep</strong> tegels van hetzelfde type.</li>
-                <li>Elke tegel in die groep levert <strong>1 punt</strong> op.</li>
+                <li><strong>Grootste Gebied:</strong> Tel de tegels van je grootste aaneengesloten groep per terreintype. Elke tegel = 1 punt.</li>
+                <li><strong>Meerderheid (2 spelers):</strong> Grootste krijgt +2. Bij gelijkspel beiden +1.</li>
+                <li><strong>Meerderheid (3-6 spelers):</strong> Grootste krijgt +3, tweede plek +1. Bij gedeelde 1e plaats beiden +2 (geen 2e plek bonus).</li>
             </ul>
         </div>
         <div class="rule-box">
-            <h3>🏛 Landmarks (Landmarken)</h3>
+            <h3>🏛 Landmarks <span class="landmark-badge">Uitbreiding</span></h3>
             <ul>
-                <li>Alleen bij uitbreiding: tel punten van Landmark-fiches en de bijbehorende Landmark-kaarten.</li>
+                <li><strong>Landmark-fiches:</strong> Punten die direct op het verzamelde houten landmark-fiche staan.</li>
+                <li><strong>Landmark-kaarten:</strong> Bonuspunten die je aan het eind krijgt op basis van de specifieke kaart die bij jouw landmark hoort.</li>
             </ul>
         </div>
         <div class="rule-box">
-            <h3>🏆 Meerderheidsbonussen</h3>
+            <h3>🌲 Natuurfiches & Totaal</h3>
             <ul>
-                <li><strong>2 Spelers:</strong> Grootste leefgebied krijgt <strong>+2 punten</strong>.</li>
-                <li><strong>3+ Spelers:</strong> Grootste krijgt <strong>+3</strong>, tweede plek <strong>+1</strong>.</li>
+                <li><strong>Natuurfiches (Dennenappels):</strong> Elk ongebruikt natuurfiche aan het einde van het spel is <strong>1 punt</strong> waard.</li>
+                <li><strong>Gelijkspel:</strong> Bij een gelijke eindstand wint de speler met de meeste natuurfiches.</li>
             </ul>
         </div>
     </div>
@@ -206,17 +210,17 @@
         html += `<div class="cell header-cell">Categorie</div>`;
         for (let i = 1; i <= numPlayers; i++) html += `<div class="cell header-cell">Speler ${i}</div>`;
 
-        // Dieren
-        html += `<div class="cell section-header">Dierenkaarten</div>`;
+        // Wildlife
+        html += `<div class="cell section-header">Wildlife Kaarten</div>`;
         wildlife.forEach(cat => {
             html += `<div class="cell label-cell">${cat.name}</div>`;
             for (let i = 1; i <= numPlayers; i++) {
-                html += `<div class="cell"><input type="number" class="score-input p${i} wildlife" value="0" min="0" oninput="calculate()" onfocus="clearZero(this)" onblur="restoreZero(this)"></div>`;
+                html += `<div class="cell"><input type="number" class="score-input p${i}" value="0" min="0" oninput="calculate()" onfocus="clearZero(this)" onblur="restoreZero(this)"></div>`;
             }
         });
 
         // Gebieden
-        html += `<div class="cell section-header">Grootste Leefgebieden</div>`;
+        html += `<div class="cell section-header">Grootste Leefgebieden (1 punt/tegel)</div>`;
         habitats.forEach(cat => {
             html += `<div class="cell label-cell">${cat.name}</div>`;
             for (let i = 1; i <= numPlayers; i++) {
@@ -224,21 +228,21 @@
             }
         });
 
-        // Landmarks (Optioneel)
+        // Landmarks
         if (useLandmarks) {
-            html += `<div class="cell section-header">Landmarks (Uitbreiding)</div>`;
+            html += `<div class="cell section-header">Landmarks (Landmarken)</div>`;
             html += `<div class="cell label-cell">🏛 Landmark Fiches</div>`;
             for (let i = 1; i <= numPlayers; i++) {
-                html += `<div class="cell"><input type="number" class="score-input p${i} landmark" value="0" min="0" oninput="calculate()" onfocus="clearZero(this)" onblur="restoreZero(this)"></div>`;
+                html += `<div class="cell"><input type="number" class="score-input p${i}" value="0" min="0" oninput="calculate()" onfocus="clearZero(this)" onblur="restoreZero(this)"></div>`;
             }
             html += `<div class="cell label-cell">📜 Landmark Kaarten</div>`;
             for (let i = 1; i <= numPlayers; i++) {
-                html += `<div class="cell"><input type="number" class="score-input p${i} landmark" value="0" min="0" oninput="calculate()" onfocus="clearZero(this)" onblur="restoreZero(this)"></div>`;
+                html += `<div class="cell"><input type="number" class="score-input p${i}" value="0" min="0" oninput="calculate()" onfocus="clearZero(this)" onblur="restoreZero(this)"></div>`;
             }
         }
 
         // Bonussen
-        html += `<div class="cell section-header">Bonussen</div>`;
+        html += `<div class="cell section-header">Terrein Bonussen (Meerderheid)</div>`;
         html += `<div class="cell label-cell">Bonus Totaal</div>`;
         for (let i = 1; i <= numPlayers; i++) {
             html += `<div class="cell"><input type="number" id="bonus-p${i}" class="bonus-input" value="0" readonly></div>`;
@@ -248,7 +252,7 @@
         html += `<div class="cell section-header">Overig</div>`;
         html += `<div class="cell label-cell">🌲 Natuurfiches</div>`;
         for (let i = 1; i <= numPlayers; i++) {
-            html += `<div class="cell"><input type="number" class="score-input p${i} other" value="0" min="0" oninput="calculate()" onfocus="clearZero(this)" onblur="restoreZero(this)"></div>`;
+            html += `<div class="cell"><input type="number" class="score-input p${i}" value="0" min="0" oninput="calculate()" onfocus="clearZero(this)" onblur="restoreZero(this)"></div>`;
         }
 
         // Totaal
@@ -288,7 +292,7 @@
                         firstPlacePlayers.forEach(p => playerBonuses[p.player] += 2);
                     } else {
                         playerBonuses[sorted[0].player] += 3;
-                        let secondScore = sorted[1].score;
+                        let secondScore = (sorted[1]) ? sorted[1].score : 0;
                         if (secondScore > 0) {
                             let secondPlacePlayers = sorted.filter(s => s.score === secondScore);
                             if (secondPlacePlayers.length === 1) playerBonuses[sorted[1].player] += 1;
