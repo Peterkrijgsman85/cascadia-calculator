@@ -41,7 +41,6 @@
         
         .setup { text-align: center; margin-bottom: 20px; padding-bottom: 15px; border-bottom: 1px solid var(--border); }
 
-        /* Container voor horizontaal scrollen op mobiel */
         .table-responsive {
             width: 100%;
             overflow-x: auto;
@@ -54,7 +53,7 @@
             display: grid; 
             gap: 1px; 
             background-color: var(--border);
-            min-width: 500px; /* Garandeert dat het niet te krap wordt op mobiel */
+            min-width: 500px;
         }
 
         .cell { background: white; padding: 12px; display: flex; align-items: center; justify-content: center; }
@@ -69,6 +68,7 @@
             border-radius: 4px;
             text-align: center;
             font-size: 1rem;
+            outline-color: var(--accent);
         }
 
         .bonus-input { background-color: #f0fdf4; border-color: #bbf7d0 !important; font-weight: bold; color: var(--accent); pointer-events: none; }
@@ -78,7 +78,6 @@
 
         .btn-reset { margin-top: 20px; width: 100%; padding: 15px; background: #ef4444; color: white; border: none; border-radius: 8px; font-weight: bold; cursor: pointer; font-size: 1rem; }
 
-        /* Kantel tip */
         .orientation-tip {
             display: none;
             background: #e1f5fe;
@@ -95,7 +94,6 @@
             .orientation-tip { display: block; }
         }
 
-        /* Regels Sectie */
         .rules-container { width: 100%; max-width: 1000px; background: white; padding: 30px; border-radius: 16px; border: 1px solid var(--border); box-sizing: border-box; line-height: 1.6; }
         .rules-container h2 { color: var(--primary); border-bottom: 2px solid var(--accent); padding-bottom: 8px; margin-top: 0; }
         .rules-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 25px; margin-top: 20px; }
@@ -138,30 +136,28 @@
             <h3>🐻 Wildlifekaarten</h3>
             <ul>
                 <li>Diersoorten: Beer, Wapiti, Buizerd, Vos en Zalm.</li>
-                <li>Scoor op basis van de gekozen kaarten (A, B, C of D).</li>
                 <li>Vul per dier het totaal aantal punten in.</li>
             </ul>
         </div>
         <div class="rule-box">
             <h3>🏞 Grootste Leefgebieden</h3>
             <ul>
-                <li>Tel de tegels van je grootste aaneengesloten groep per terreintype.</li>
-                <li>Elke tegel in die groep is <strong>1 punt</strong> waard.</li>
+                <li>Tel de tegels van je grootste groep per terreintype.</li>
+                <li>Elke tegel is <strong>1 punt</strong> waard.</li>
             </ul>
         </div>
         <div class="rule-box">
             <h3>🏆 Meerderheidsbonussen</h3>
             <ul>
-                <li><strong>2 spelers:</strong> Grootste +2, gelijkspel beiden +1.</li>
+                <li><strong>2 spelers:</strong> Grootste +2, gelijkspel +1.</li>
                 <li><strong>3-4 spelers:</strong> 1e plek +3, 2e plek +1.</li>
-                <li>Gedeelde 1e plek: beiden +2 (geen 2e plek bonus).</li>
-                <li><em>Berekening gebeurt automatisch in deze tool!</em></li>
+                <li><em>Berekend door deze tool!</em></li>
             </ul>
         </div>
         <div class="rule-box">
             <h3>🌲 Natuurfiches</h3>
             <ul>
-                <li>Elke ongebruikte dennenappel aan het eind is <strong>1 punt</strong> waard.</li>
+                <li>Ongebruikte dennenappels zijn <strong>1 punt</strong> waard.</li>
             </ul>
         </div>
     </div>
@@ -197,19 +193,19 @@
         wildlife.forEach(cat => {
             html += `<div class="cell label-cell">${cat.name}</div>`;
             for (let i = 1; i <= numPlayers; i++) {
-                html += `<div class="cell"><input type="number" class="score-input p${i} wildlife" value="0" min="0" oninput="calculate()"></div>`;
+                html += `<div class="cell"><input type="number" class="score-input p${i} wildlife" value="0" min="0" oninput="calculate()" onfocus="clearZero(this)" onblur="restoreZero(this)"></div>`;
             }
         });
 
-        html += `<div class="cell section-header">Grootste Leefgebieden <span class="info-tag">(1 pt/tegel)</span></div>`;
+        html += `<div class="cell section-header">Grootste Leefgebieden</div>`;
         habitats.forEach(cat => {
             html += `<div class="cell label-cell">${cat.name}</div>`;
             for (let i = 1; i <= numPlayers; i++) {
-                html += `<div class="cell"><input type="number" class="score-input p${i} hab-size" data-hab="${cat.id}" value="0" min="0" oninput="calculate()"></div>`;
+                html += `<div class="cell"><input type="number" class="score-input p${i} hab-size" data-hab="${cat.id}" value="0" min="0" oninput="calculate()" onfocus="clearZero(this)" onblur="restoreZero(this)"></div>`;
             }
         });
 
-        html += `<div class="cell section-header">Leefgebied Bonussen</div>`;
+        html += `<div class="cell section-header">Bonussen</div>`;
         html += `<div class="cell label-cell">Bonus Totaal</div>`;
         for (let i = 1; i <= numPlayers; i++) {
             html += `<div class="cell"><input type="number" id="bonus-p${i}" class="bonus-input" value="0" readonly></div>`;
@@ -218,7 +214,7 @@
         html += `<div class="cell section-header">Overig</div>`;
         html += `<div class="cell label-cell">🌲 Natuurfiches</div>`;
         for (let i = 1; i <= numPlayers; i++) {
-            html += `<div class="cell"><input type="number" class="score-input p${i} other" value="0" min="0" oninput="calculate()"></div>`;
+            html += `<div class="cell"><input type="number" class="score-input p${i} other" value="0" min="0" oninput="calculate()" onfocus="clearZero(this)" onblur="restoreZero(this)"></div>`;
         }
 
         html += `<div class="cell label-cell total-label">EINDTOTAAL</div>`;
@@ -227,6 +223,15 @@
         }
 
         table.innerHTML = html;
+    }
+
+    // Handige functies voor de 0-handling
+    function clearZero(el) {
+        if (el.value === "0") el.value = "";
+    }
+
+    function restoreZero(el) {
+        if (el.value === "") el.value = "0";
     }
 
     function calculate() {
