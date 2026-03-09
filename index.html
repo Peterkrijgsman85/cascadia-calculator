@@ -39,7 +39,17 @@
         h1 { text-align: center; color: var(--accent); margin-bottom: 5px; }
         .subtitle { text-align: center; color: #64748b; margin-bottom: 20px; font-size: 0.9rem; }
         
-        .setup { text-align: center; margin-bottom: 20px; padding-bottom: 15px; border-bottom: 1px solid var(--border); }
+        .setup { 
+            text-align: center; 
+            margin-bottom: 20px; 
+            padding-bottom: 15px; 
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            justify-content: center;
+            gap: 20px;
+            flex-wrap: wrap;
+            align-items: center;
+        }
 
         .table-responsive {
             width: 100%;
@@ -100,7 +110,6 @@
         .rule-box h3 { margin-top: 0; color: var(--accent); font-size: 1.1rem; }
         .rule-box ul { padding-left: 20px; margin: 0; }
         .rule-box li { margin-bottom: 8px; font-size: 0.9rem; }
-        .info-tag { font-size: 0.7rem; color: #94a3b8; font-weight: normal; margin-left: 5px; }
     </style>
 </head>
 <body>
@@ -114,12 +123,20 @@
     </div>
 
     <div class="setup">
-        <label>Aantal spelers: </label>
-        <select id="playerCount" onchange="initApp()">
-            <option value="2" selected>2 Spelers</option>
-            <option value="3">3 Spelers</option>
-            <option value="4">4 Spelers</option>
-        </select>
+        <div>
+            <label>Aantal spelers: </label>
+            <select id="playerCount" onchange="initApp()">
+                <option value="2" selected>2 Spelers</option>
+                <option value="3">3 Spelers</option>
+                <option value="4">4 Spelers</option>
+                <option value="5">5 Spelers</option>
+                <option value="6">6 Spelers</option>
+            </select>
+        </div>
+        <div>
+            <input type="checkbox" id="useLandmarks" onchange="initApp()">
+            <label for="useLandmarks"><strong>Landmarks Uitbreiding</strong></label>
+        </div>
     </div>
 
     <div class="table-responsive">
@@ -137,7 +154,6 @@
             <ul>
                 <li>Elk diersoort (Beer, Wapiti, Buizerd, Vos, Zalm) heeft een eigen scorekaart.</li>
                 <li>Punten worden verdiend op basis van specifieke patronen of groepen.</li>
-                <li>Vul per diersoort de behaalde score in.</li>
             </ul>
         </div>
         <div class="rule-box">
@@ -145,21 +161,19 @@
             <ul>
                 <li>Tel de <strong>grootste aaneengesloten groep</strong> tegels van hetzelfde type.</li>
                 <li>Elke tegel in die groep levert <strong>1 punt</strong> op.</li>
-                <li>Vul dit in bij de 5 terreintypes (Bergen t/m Rivieren).</li>
+            </ul>
+        </div>
+        <div class="rule-box">
+            <h3>🏛 Landmarks (Landmarken)</h3>
+            <ul>
+                <li>Alleen bij uitbreiding: tel punten van Landmark-fiches en de bijbehorende Landmark-kaarten.</li>
             </ul>
         </div>
         <div class="rule-box">
             <h3>🏆 Meerderheidsbonussen</h3>
             <ul>
-                <li><strong>2 Spelers:</strong> Grootste leefgebied krijgt <strong>+2 punten</strong>. Bij gelijkspel krijgen beiden <strong>+1</strong>.</li>
-                <li><strong>3-4 Spelers:</strong> Grootste krijgt <strong>+3 punten</strong>, tweede plek <strong>+1 punt</strong>.</li>
-                <li>Bij een gedeelde 1e plaats krijgen beiden <strong>+2</strong> (geen 2e plaats bonus).</li>
-            </ul>
-        </div>
-        <div class="rule-box">
-            <h3>🌲 Natuurfiches</h3>
-            <ul>
-                <li>Ongebruikte fiches zijn <strong>1 punt</strong> waard.</li>
+                <li><strong>2 Spelers:</strong> Grootste leefgebied krijgt <strong>+2 punten</strong>.</li>
+                <li><strong>3+ Spelers:</strong> Grootste krijgt <strong>+3</strong>, tweede plek <strong>+1</strong>.</li>
             </ul>
         </div>
     </div>
@@ -184,6 +198,7 @@
 
     function initApp() {
         const numPlayers = parseInt(document.getElementById('playerCount').value);
+        const useLandmarks = document.getElementById('useLandmarks').checked;
         const table = document.getElementById('scoreTable');
         table.style.gridTemplateColumns = `180px repeat(${numPlayers}, 1fr)`;
         
@@ -191,6 +206,7 @@
         html += `<div class="cell header-cell">Categorie</div>`;
         for (let i = 1; i <= numPlayers; i++) html += `<div class="cell header-cell">Speler ${i}</div>`;
 
+        // Dieren
         html += `<div class="cell section-header">Dierenkaarten</div>`;
         wildlife.forEach(cat => {
             html += `<div class="cell label-cell">${cat.name}</div>`;
@@ -199,6 +215,7 @@
             }
         });
 
+        // Gebieden
         html += `<div class="cell section-header">Grootste Leefgebieden</div>`;
         habitats.forEach(cat => {
             html += `<div class="cell label-cell">${cat.name}</div>`;
@@ -207,34 +224,45 @@
             }
         });
 
+        // Landmarks (Optioneel)
+        if (useLandmarks) {
+            html += `<div class="cell section-header">Landmarks (Uitbreiding)</div>`;
+            html += `<div class="cell label-cell">🏛 Landmark Fiches</div>`;
+            for (let i = 1; i <= numPlayers; i++) {
+                html += `<div class="cell"><input type="number" class="score-input p${i} landmark" value="0" min="0" oninput="calculate()" onfocus="clearZero(this)" onblur="restoreZero(this)"></div>`;
+            }
+            html += `<div class="cell label-cell">📜 Landmark Kaarten</div>`;
+            for (let i = 1; i <= numPlayers; i++) {
+                html += `<div class="cell"><input type="number" class="score-input p${i} landmark" value="0" min="0" oninput="calculate()" onfocus="clearZero(this)" onblur="restoreZero(this)"></div>`;
+            }
+        }
+
+        // Bonussen
         html += `<div class="cell section-header">Bonussen</div>`;
         html += `<div class="cell label-cell">Bonus Totaal</div>`;
         for (let i = 1; i <= numPlayers; i++) {
             html += `<div class="cell"><input type="number" id="bonus-p${i}" class="bonus-input" value="0" readonly></div>`;
         }
 
+        // Overig
         html += `<div class="cell section-header">Overig</div>`;
         html += `<div class="cell label-cell">🌲 Natuurfiches</div>`;
         for (let i = 1; i <= numPlayers; i++) {
             html += `<div class="cell"><input type="number" class="score-input p${i} other" value="0" min="0" oninput="calculate()" onfocus="clearZero(this)" onblur="restoreZero(this)"></div>`;
         }
 
+        // Totaal
         html += `<div class="cell label-cell total-label">EINDTOTAAL</div>`;
         for (let i = 1; i <= numPlayers; i++) {
             html += `<div class="cell total-cell"><input type="number" id="total-p${i}" value="0" readonly></div>`;
         }
 
         table.innerHTML = html;
+        calculate();
     }
 
-    // Handige functies voor de 0-handling
-    function clearZero(el) {
-        if (el.value === "0") el.value = "";
-    }
-
-    function restoreZero(el) {
-        if (el.value === "") el.value = "0";
-    }
+    function clearZero(el) { if (el.value === "0") el.value = ""; }
+    function restoreZero(el) { if (el.value === "") el.value = "0"; }
 
     function calculate() {
         const numPlayers = parseInt(document.getElementById('playerCount').value);
@@ -243,7 +271,8 @@
         habitats.forEach(hab => {
             let scores = [];
             for (let i = 1; i <= numPlayers; i++) {
-                let val = parseInt(document.querySelector(`.p${i}.hab-size[data-hab="${hab.id}"]`).value) || 0;
+                let el = document.querySelector(`.p${i}.hab-size[data-hab="${hab.id}"]`);
+                let val = el ? parseInt(el.value) || 0 : 0;
                 scores.push({ player: i - 1, score: val });
             }
 
@@ -270,12 +299,15 @@
         });
 
         for (let i = 1; i <= numPlayers; i++) {
-            document.getElementById(`bonus-p${i}`).value = playerBonuses[i-1];
+            let bonusEl = document.getElementById(`bonus-p${i}`);
+            if (bonusEl) bonusEl.value = playerBonuses[i-1];
+            
             let total = playerBonuses[i-1];
-            document.querySelectorAll(`.p${i}`).forEach(input => {
+            document.querySelectorAll(`.p${i}.score-input`).forEach(input => {
                 total += parseInt(input.value) || 0;
             });
-            document.getElementById(`total-p${i}`).value = total;
+            let totalEl = document.getElementById(`total-p${i}`);
+            if (totalEl) totalEl.value = total;
         }
     }
 
