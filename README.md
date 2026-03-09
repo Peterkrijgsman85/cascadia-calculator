@@ -18,7 +18,7 @@ Deze tool is volledig gelokaliseerd naar de Nederlandse editie van het spel (inc
 ## 🚀 Live Demo
 
 Je kunt de calculator hier direct gebruiken:
-**[LINK NAAR JOUW GITHUB PAGES URL HIER]**
+**(https://peterkrijgsman85.github.io/cascadia-calculator/)**
 
 ## 🛠 Gebruik
 
