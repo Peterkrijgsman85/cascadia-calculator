@@ -3,13 +3,15 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Cascadia Score App</title>
+    <title>Cascadia Expert Score Calculator</title>
     <style>
         :root {
             --primary: #2c3e50;
             --accent: #27ae60;
             --bg: #f8fafc;
             --border: #e2e8f0;
+            --wildlife: #e67e22;
+            --habitat: #2980b9;
         }
 
         body { 
@@ -28,184 +30,191 @@
             border-radius: 16px; 
             box-shadow: 0 10px 25px rgba(0,0,0,0.05);
             width: 100%;
-            max-width: 900px;
+            max-width: 1000px;
         }
 
-        h1 { text-align: center; color: var(--accent); margin-bottom: 10px; }
+        h1 { text-align: center; color: var(--accent); margin-bottom: 5px; }
+        p.subtitle { text-align: center; color: #64748b; margin-bottom: 25px; font-size: 0.9rem; }
         
         .setup { 
             text-align: center; 
-            margin-bottom: 30px; 
+            margin-bottom: 20px; 
             padding-bottom: 20px;
             border-bottom: 1px solid var(--border);
         }
 
-        /* De Grid Layout */
         .score-table { 
             display: grid; 
-            gap: 1px; /* Creëert subtiele lijnen */
+            gap: 1px; 
             background-color: var(--border);
             border: 1px solid var(--border);
             border-radius: 8px;
             overflow: hidden;
         }
 
-        .cell {
-            background: white;
-            padding: 12px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-        }
+        .cell { background: white; padding: 10px; display: flex; align-items: center; justify-content: center; }
+        .header-cell { background: #f1f5f9; font-weight: bold; text-transform: uppercase; font-size: 0.75rem; color: #64748b; }
+        .section-header { background: #f8fafc; font-weight: bold; color: var(--primary); grid-column: 1 / -1; justify-content: flex-start; padding-left: 15px; border-top: 2px solid var(--border); }
+        .label-cell { justify-content: flex-start; font-weight: 600; font-size: 0.9rem; background: #fdfdfd; }
 
-        .header-cell {
-            background: #f1f5f9;
-            font-weight: bold;
-            text-transform: uppercase;
-            font-size: 0.85rem;
-            color: #64748b;
-        }
-
-        .label-cell {
-            justify-content: flex-start;
-            font-weight: 600;
-            background: #fdfdfd;
-        }
-
-        /* Inputs styling */
         input[type="number"] {
-            width: 60px;
-            padding: 8px;
+            width: 55px;
+            padding: 6px;
             border: 1px solid #cbd5e1;
-            border-radius: 6px;
+            border-radius: 4px;
             text-align: center;
             font-size: 1rem;
-            outline: none;
-            transition: border-color 0.2s;
         }
 
-        input[type="number"]:focus {
-            border-color: var(--accent);
-        }
+        .bonus-input { background-color: #f0fdf4; border-color: #bbf7d0 !important; font-weight: bold; color: var(--accent); pointer-events: none; }
+        .total-label { background: #1e293b; color: white; font-weight: bold; }
+        .total-cell { background: var(--accent); color: white; }
+        .total-cell input { background: rgba(255,255,255,0.2); border: none; color: white; font-weight: bold; pointer-events: none; }
 
-        /* Totaal-sectie */
-        .total-label {
-            background: #1e293b;
-            color: white;
-            font-weight: bold;
-        }
-
-        .total-cell {
-            background: var(--accent);
-            color: white;
-        }
-
-        .total-cell input {
-            background: rgba(255,255,255,0.2);
-            border: none;
-            color: white;
-            font-weight: bold;
-            pointer-events: none;
-        }
-
-        .btn-reset {
-            margin-top: 25px;
-            width: 100%;
-            padding: 15px;
-            background: #ef4444;
-            color: white;
-            border: none;
-            border-radius: 8px;
-            font-weight: bold;
-            cursor: pointer;
-            font-size: 1rem;
-            transition: opacity 0.2s;
-        }
-
-        .btn-reset:hover { opacity: 0.9; }
-
-        select {
-            padding: 8px 16px;
-            border-radius: 6px;
-            border: 1px solid #cbd5e1;
-            font-size: 1rem;
-        }
+        .btn-reset { margin-top: 20px; width: 100%; padding: 12px; background: #ef4444; color: white; border: none; border-radius: 8px; font-weight: bold; cursor: pointer; }
+        
+        .info-tag { font-size: 0.7rem; color: #94a3b8; font-weight: normal; margin-left: 5px; }
     </style>
 </head>
 <body>
 
 <div class="card">
     <h1>Cascadia Score Calculator</h1>
+    <p class="subtitle">Inclusief automatische Habitat Bonus berekening</p>
 
     <div class="setup">
         <label>Aantal spelers: </label>
         <select id="playerCount" onchange="initApp()">
-            <option value="1">1</option>
-            <option value="2" selected>2</option>
-            <option value="3">3</option>
-            <option value="4">4</option>
+            <option value="2" selected>2 Spelers</option>
+            <option value="3">3 Spelers</option>
+            <option value="4">4 Spelers</option>
         </select>
     </div>
 
-    <div id="scoreTable" class="score-table">
-        </div>
+    <div id="scoreTable" class="score-table"></div>
 
     <button class="btn-reset" onclick="resetScores()">Reset Alle Scores</button>
 </div>
 
 <script>
-    const categories = [
+    const wildlife = [
         { id: 'bear', name: '🐻 Beren' },
         { id: 'elk', name: '🦌 Elanden' },
         { id: 'hawk', name: '🦅 Haviken' },
         { id: 'fox', name: '🦊 Vossen' },
-        { id: 'salmon', name: '🐟 Zalmen' },
-        { id: 'habitat', name: '🏞 Habitat' },
-        { id: 'tokens', name: '🌲 Tokens' }
+        { id: 'salmon', name: '🐟 Zalmen' }
+    ];
+
+    const habitats = [
+        { id: 'mtn', name: '🏔 Bergen' },
+        { id: 'for', name: '🌲 Bossen' },
+        { id: 'pra', name: '🌾 Prairie' },
+        { id: 'wet', name: '💧 Moeras' },
+        { id: 'riv', name: '🌊 Rivieren' }
     ];
 
     function initApp() {
         const numPlayers = parseInt(document.getElementById('playerCount').value);
         const table = document.getElementById('scoreTable');
-        
-        // Update de grid-kolommen dynamisch
-        table.style.gridTemplateColumns = `180px repeat(${numPlayers}, 1fr)`;
+        table.style.gridTemplateColumns = `200px repeat(${numPlayers}, 1fr)`;
         
         let html = '';
-
-        // 1. Headers
         html += `<div class="cell header-cell">Categorie</div>`;
-        for (let i = 1; i <= numPlayers; i++) {
-            html += `<div class="cell header-cell">Speler ${i}</div>`;
-        }
+        for (let i = 1; i <= numPlayers; i++) html += `<div class="cell header-cell">Speler ${i}</div>`;
 
-        // 2. Categorie rijen
-        categories.forEach(cat => {
+        // Wildlife Section
+        html += `<div class="cell section-header">Dierenkaarten</div>`;
+        wildlife.forEach(cat => {
             html += `<div class="cell label-cell">${cat.name}</div>`;
             for (let i = 1; i <= numPlayers; i++) {
-                html += `
-                <div class="cell">
-                    <input type="number" class="score-input p${i}" value="0" min="0" oninput="calculate()">
-                </div>`;
+                html += `<div class="cell"><input type="number" class="score-input p${i} wildlife" value="0" min="0" oninput="calculate()"></div>`;
             }
         });
 
-        // 3. Totaal rij
+        // Habitat Section
+        html += `<div class="cell section-header">Grootste Habitats <span class="info-tag">(Punten per tegel)</span></div>`;
+        habitats.forEach(cat => {
+            html += `<div class="cell label-cell">${cat.name}</div>`;
+            for (let i = 1; i <= numPlayers; i++) {
+                html += `<div class="cell"><input type="number" class="score-input p${i} hab-size" data-hab="${cat.id}" value="0" min="0" oninput="calculate()"></div>`;
+            }
+        });
+
+        // Bonus Section (Read-only)
+        html += `<div class="cell section-header">Habitat Bonussen <span class="info-tag">(Automatisch berekend)</span></div>`;
+        html += `<div class="cell label-cell">Totaal Bonus</div>`;
+        for (let i = 1; i <= numPlayers; i++) {
+            html += `<div class="cell"><input type="number" id="bonus-p${i}" class="bonus-input" value="0" readonly></div>`;
+        }
+
+        // Overig
+        html += `<div class="cell section-header">Overig</div>`;
+        html += `<div class="cell label-cell">🌲 Natuurtokens</div>`;
+        for (let i = 1; i <= numPlayers; i++) {
+            html += `<div class="cell"><input type="number" class="score-input p${i} other" value="0" min="0" oninput="calculate()"></div>`;
+        }
+
+        // Totaal
         html += `<div class="cell label-cell total-label">EINDTOTAAL</div>`;
         for (let i = 1; i <= numPlayers; i++) {
-            html += `
-            <div class="cell total-cell">
-                <input type="number" id="total-p${i}" value="0" readonly>
-            </div>`;
+            html += `<div class="cell total-cell"><input type="number" id="total-p${i}" value="0" readonly></div>`;
         }
 
         table.innerHTML = html;
     }
 
     function calculate() {
-        const numPlayers = document.getElementById('playerCount').value;
+        const numPlayers = parseInt(document.getElementById('playerCount').value);
+        let playerBonuses = Array(numPlayers).fill(0);
+
+        // Bereken Bonussen per habitat type
+        habitats.forEach(hab => {
+            let scores = [];
+            for (let i = 1; i <= numPlayers; i++) {
+                let val = parseInt(document.querySelector(`.p${i}.hab-size[data-hab="${hab.id}"]`).value) || 0;
+                scores.push({ player: i - 1, score: val });
+            }
+
+            // Alleen berekenen als er scores zijn ingevuld (niet allemaal 0)
+            if (scores.some(s => s.score > 0)) {
+                let sorted = [...scores].sort((a, b) => b.score - a.score);
+                
+                if (numPlayers === 2) {
+                    if (sorted[0].score > sorted[1].score) {
+                        playerBonuses[sorted[0].player] += 2;
+                    } else if (sorted[0].score === sorted[1].score && sorted[0].score > 0) {
+                        playerBonuses[0] += 1;
+                        playerBonuses[1] += 1;
+                    }
+                } else {
+                    // 3 of 4 spelers
+                    let firstScore = sorted[0].score;
+                    let firstPlacePlayers = sorted.filter(s => s.score === firstScore);
+
+                    if (firstPlacePlayers.length > 1) {
+                        // Gelijkspel voor 1e plaats
+                        firstPlacePlayers.forEach(p => playerBonuses[p.player] += 2);
+                    } else {
+                        // Unieke 1e plaats
+                        playerBonuses[sorted[0].player] += 3;
+                        let secondScore = sorted[1].score;
+                        if (secondScore > 0) {
+                            let secondPlacePlayers = sorted.filter(s => s.score === secondScore);
+                            if (secondPlacePlayers.length === 1) {
+                                playerBonuses[sorted[1].player] += 1;
+                            }
+                            // Bij gelijkspel voor 2e plaats krijgt niemand punten (volgens standaard regels)
+                        }
+                    }
+                }
+            }
+        });
+
+        // Update Bonus velden en bereken eindtotaal
         for (let i = 1; i <= numPlayers; i++) {
-            let total = 0;
+            document.getElementById(`bonus-p${i}`).value = playerBonuses[i-1];
+            
+            let total = playerBonuses[i-1];
             document.querySelectorAll(`.p${i}`).forEach(input => {
                 total += parseInt(input.value) || 0;
             });
