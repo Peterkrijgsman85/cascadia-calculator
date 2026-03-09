@@ -3,14 +3,13 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Cascadia Score App</title>
+    <title>Cascadia Score Calculator</title>
     <style>
         :root {
             --primary: #2c3e50;
             --accent: #27ae60;
             --bg: #f8fafc;
             --border: #e2e8f0;
-            --wildlife: #e67e22;
         }
 
         body { 
@@ -74,7 +73,6 @@
 
         .btn-reset { margin-top: 20px; width: 100%; padding: 12px; background: #ef4444; color: white; border: none; border-radius: 8px; font-weight: bold; cursor: pointer; }
 
-        /* Rules Section Styling */
         .rules-container {
             width: 100%;
             max-width: 1000px;
@@ -97,7 +95,7 @@
 
 <div class="card">
     <h1>Cascadia Score Calculator</h1>
-    <p class="subtitle">Bereken snel de winnaar van de wildernis</p>
+    <p class="subtitle">Bereken de winnaar van de wildernis</p>
 
     <div class="setup">
         <label>Aantal spelers: </label>
@@ -119,35 +117,35 @@
         <div class="rule-box">
             <h3>🐻 Wildlifekaarten</h3>
             <ul>
-                <li>Elk diersoort (Beer, Eland, Havik, Vos, Zalm) heeft een eigen scorekaart.</li>
-                <li>Punten worden verdiend op basis van specifieke patronen of groepen op je bord.</li>
-                <li>Vul per dier het totaal aantal behaalde punten in.</li>
+                <li>Elk diersoort (Beer, Wapiti, Havik, Vos, Zalm) heeft een eigen scorekaart.</li>
+                <li>Punten worden verdiend op basis van specifieke patronen of groepen.</li>
+                <li>Vul per diersoort de behaalde score in.</li>
             </ul>
         </div>
 
         <div class="rule-box">
-            <h3>🏞 Habitatgebieden</h3>
+            <h3>🏞 Grootste Leefgebieden</h3>
             <ul>
-                <li>Tel je <strong>grootste aaneengesloten groep</strong> tegels van hetzelfde type.</li>
-                <li>Elke tegel in die groep is <strong>1 punt</strong> waard.</li>
-                <li>Je vult dit in bij de 5 terreintypes (Bergen t/m Rivieren).</li>
+                <li>Tel de <strong>grootste aaneengesloten groep</strong> tegels van hetzelfde type.</li>
+                <li>Elke tegel in die groep levert <strong>1 punt</strong> op.</li>
+                <li>Vul dit in bij de 5 terreintypes (Bergen t/m Rivieren).</li>
             </ul>
         </div>
 
         <div class="rule-box">
             <h3>🏆 Meerderheidsbonussen</h3>
-            <p style="font-size: 0.9rem; margin-top:0;">Deze calculator berekent dit automatisch:</p>
+            <p style="font-size: 0.9rem; margin-top:0;">Dit wordt automatisch berekend op basis van de leefgebieden:</p>
             <ul>
-                <li><strong>2 Spelers:</strong> Grootste gebied krijgt <strong>+2 punten</strong>. Bij gelijkspel krijgen beiden <strong>+1</strong>.</li>
-                <li><strong>3-4 Spelers:</strong> Grootste gebied krijgt <strong>+3 punten</strong>, tweede plek <strong>+1 punt</strong>.</li>
-                <li>Bij een gedeelde 1e plaats (3+ spelers) krijgen beiden <strong>+2</strong> en vervalt de 2e plaats bonus.</li>
+                <li><strong>2 Spelers:</strong> Grootste leefgebied krijgt <strong>+2 punten</strong>. Bij gelijkspel krijgen beiden <strong>+1</strong>.</li>
+                <li><strong>3-4 Spelers:</strong> Grootste krijgt <strong>+3 punten</strong>, tweede plek <strong>+1 punt</strong>.</li>
+                <li>Bij een gedeelde 1e plaats krijgen beiden <strong>+2</strong> (geen 2e plaats bonus).</li>
             </ul>
         </div>
 
         <div class="rule-box">
             <h3>🌲 Natuurtokens</h3>
             <ul>
-                <li>Elke ongebruikte dennenappel (natuurtoken) die je aan het eind van het spel nog bezit, is <strong>1 punt</strong> waard.</li>
+                <li>Elke ongebruikte dennenappel (natuurtoken) aan het eind van het spel is <strong>1 punt</strong> waard.</li>
             </ul>
         </div>
     </div>
@@ -156,7 +154,7 @@
 <script>
     const wildlife = [
         { id: 'bear', name: '🐻 Beren' },
-        { id: 'elk', name: '🦌 Elanden' },
+        { id: 'elk', name: '🦌 Wapiti\'s' },
         { id: 'hawk', name: '🦅 Haviken' },
         { id: 'fox', name: '🦊 Vossen' },
         { id: 'salmon', name: '🐟 Zalmen' }
@@ -173,7 +171,7 @@
     function initApp() {
         const numPlayers = parseInt(document.getElementById('playerCount').value);
         const table = document.getElementById('scoreTable');
-        table.style.gridTemplateColumns = `200px repeat(${numPlayers}, 1fr)`;
+        table.style.gridTemplateColumns = `210px repeat(${numPlayers}, 1fr)`;
         
         let html = '';
         html += `<div class="cell header-cell">Categorie</div>`;
@@ -187,7 +185,7 @@
             }
         });
 
-        html += `<div class="cell section-header">Grootste Habitats <span class="info-tag">(1 punt per tegel)</span></div>`;
+        html += `<div class="cell section-header">Grootste Leefgebieden <span class="info-tag">(1 punt per tegel)</span></div>`;
         habitats.forEach(cat => {
             html += `<div class="cell label-cell">${cat.name}</div>`;
             for (let i = 1; i <= numPlayers; i++) {
@@ -195,7 +193,7 @@
             }
         });
 
-        html += `<div class="cell section-header">Habitat Bonussen</div>`;
+        html += `<div class="cell section-header">Leefgebied Bonussen</div>`;
         html += `<div class="cell label-cell">Bonus Totaal</div>`;
         for (let i = 1; i <= numPlayers; i++) {
             html += `<div class="cell"><input type="number" id="bonus-p${i}" class="bonus-input" value="0" readonly></div>`;
