@@ -151,7 +151,7 @@
     <h2>Uitleg Scoreverloop</h2>
     <div class="rules-grid">
         <div class="rule-box">
-            <h3>🐻 Wildlife</h3>
+            <h3>🐻 Dierkaarten</h3>
             <ul>
                 <li><strong>Dierenkaarten:</strong> Gebruik de scorekaart per diersoort. Tel de punten op basis van de gevormde patronen.</li>
                 <li><strong>Vossen:</strong> Scoren vaak op basis van aangrenzende dieren.</li>
@@ -159,7 +159,7 @@
             </ul>
         </div>
         <div class="rule-box">
-            <h3>🏞 Gebieden & Bonussen</h3>
+            <h3>🏞 Leefgebieden & Bonussen</h3>
             <ul>
                 <li><strong>Grootste Gebied:</strong> Tel de tegels van je grootste aaneengesloten groep per terreintype. Elke tegel = 1 punt.</li>
                 <li><strong>Meerderheid (2 spelers):</strong> Grootste krijgt +2. Bij gelijkspel beiden +1.</li>
@@ -176,7 +176,7 @@
         <div class="rule-box">
             <h3>🌲 Natuurfiches & Totaal</h3>
             <ul>
-                <li><strong>Natuurfiches (Dennenappels):</strong> Elk ongebruikt natuurfiche aan het einde van het spel is <strong>1 punt</strong> waard.</li>
+                <li><strong>Natuurfiches:</strong> Elk ongebruikt natuurfiche aan het einde van het spel is <strong>1 punt</strong> waard.</li>
                 <li><strong>Gelijkspel:</strong> Bij een gelijke eindstand wint de speler met de meeste natuurfiches.</li>
             </ul>
         </div>
@@ -211,7 +211,7 @@
         for (let i = 1; i <= numPlayers; i++) html += `<div class="cell header-cell">Speler ${i}</div>`;
 
         // Wildlife
-        html += `<div class="cell section-header">Wildlife Kaarten</div>`;
+        html += `<div class="cell section-header">Dierkaarten</div>`;
         wildlife.forEach(cat => {
             html += `<div class="cell label-cell">${cat.name}</div>`;
             for (let i = 1; i <= numPlayers; i++) {
@@ -220,7 +220,7 @@
         });
 
         // Gebieden
-        html += `<div class="cell section-header">Grootste Leefgebieden (1 punt/tegel)</div>`;
+        html += `<div class="cell section-header">Leefgebieden (1 punt/tegel)</div>`;
         habitats.forEach(cat => {
             html += `<div class="cell label-cell">${cat.name}</div>`;
             for (let i = 1; i <= numPlayers; i++) {
@@ -230,7 +230,7 @@
 
         // Landmarks
         if (useLandmarks) {
-            html += `<div class="cell section-header">Landmarks (Landmarken)</div>`;
+            html += `<div class="cell section-header">Landmarks</div>`;
             html += `<div class="cell label-cell">🏛 Landmark Fiches</div>`;
             for (let i = 1; i <= numPlayers; i++) {
                 html += `<div class="cell"><input type="number" class="score-input p${i}" value="0" min="0" oninput="calculate()" onfocus="clearZero(this)" onblur="restoreZero(this)"></div>`;
@@ -242,7 +242,7 @@
         }
 
         // Bonussen
-        html += `<div class="cell section-header">Terrein Bonussen (Meerderheid)</div>`;
+        html += `<div class="cell section-header">Leefgebied Bonussen (Meerderheid)</div>`;
         html += `<div class="cell label-cell">Bonus Totaal</div>`;
         for (let i = 1; i <= numPlayers; i++) {
             html += `<div class="cell"><input type="number" id="bonus-p${i}" class="bonus-input" value="0" readonly></div>`;
