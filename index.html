@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cascadia Score Calculator</title>
+    <style>
+        :root {
+            --primary: #2c3e50;
+            --accent: #27ae60;
+            --bg: #f4f7f6;
+        }
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: var(--bg); color: var(--primary); margin: 0; padding: 20px; }
+        .container { max-width: 800px; margin: auto; background: white; padding: 20px; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); }
+        h1 { text-align: center; color: var(--accent); }
+        
+        .setup { margin-bottom: 20px; text-align: center; border-bottom: 2px solid #eee; padding-bottom: 15px; }
+        .player-grid { display: grid; grid-template-columns: 150px repeat(auto-fit, minmax(80px, 1fr)); gap: 10px; overflow-x: auto; }
+        
+        .row { display: contents; }
+        .header-cell { font-weight: bold; background: #eee; padding: 10px; border-radius: 5px; text-align: center; }
+        .label-cell { font-weight: bold; display: flex; align-items: center; padding: 5px; border-bottom: 1px solid #eee; }
+        .input-cell { text-align: center; border-bottom: 1px solid #eee; padding: 5px; }
+        
+        input[type="number"] { width: 50px; padding: 8px; border: 1px solid #ccc; border-radius: 4px; text-align: center; font-size: 16px; }
+        
+        .total-row { background: #f9f9f9; font-weight: bold; }
+        .grand-total { background: var(--accent); color: white; }
+        .grand-total input { background: transparent; border: none; color: white; font-weight: bold; pointer-events: none; }
+
+        .btn-reset { display: block; width: 100%; margin-top: 20px; padding: 12px; background: #e74c3c; color: white; border: none; border-radius: 6px; cursor: pointer; font-size: 16px; }
+        .btn-reset:hover { background: #c0392b; }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h1>Cascadia Score Calculator</h1>
+
+    <div class="setup">
+        <label>Aantal spelers: </label>
+        <select id="playerCount" onchange="initApp()">
+            <option value="1">1</option>
+            <option value="2" selected>2</option>
+            <option value="3">3</option>
+            <option value="4">4</option>
+        </select>
+    </div>
+
+    <div id="calculatorGrid" class="player-grid">
+        </div>
+
+    <button class="btn-reset" onclick="resetScores()">Reset Scores</button>
+</div>
+
+<script>
+    const categories = [
+        { id: 'bear', name: '🐻 Beren' },
+        { id: 'elk', name: '🦌 Elanden' },
+        { id: 'hawk', name: '🦅 Haviken' },
+        { id: 'fox', name: '🦊 Vossen' },
+        { id: 'salmon', name: '🐟 Zalmen' },
+        { id: 'habitat', name: '🏞 Habitat Bonus' },
+        { id: 'tokens', name: '🌲 Tokens' }
+    ];
+
+    function initApp() {
+        const numPlayers = document.getElementById('playerCount').value;
+        const grid = document.getElementById('calculatorGrid');
+        grid.innerHTML = '';
+
+        // Headers
+        grid.innerHTML += `<div class="header-cell">Categorie</div>`;
+        for (let i = 1; i <= numPlayers; i++) {
+            grid.innerHTML += `<div class="header-cell">Speler ${i}</div>`;
+        }
+
+        // Rijen per categorie
+        categories.forEach(cat => {
+            let row = `<div class="label-cell">${cat.name}</div>`;
+            for (let i = 1; i <= numPlayers; i++) {
+                row += `<div class="input-cell">
+                            <input type="number" class="score-input p${i}" data-cat="${cat.id}" value="0" min="0" oninput="calculate()">
+                        </div>`;
+            }
+            grid.innerHTML += row;
+        });
+
+        // Totaal Rij
+        let totalRow = `<div class="label-cell">EINDTOTAAL</div>`;
+        for (let i = 1; i <= numPlayers; i++) {
+            totalRow += `<div class="input-cell total-row grand-total">
+                            <input type="number" id="total-p${i}" value="0" readonly>
+                         </div>`;
+        }
+        grid.innerHTML += totalRow;
+    }
+
+    function calculate() {
+        const numPlayers = document.getElementById('playerCount').value;
+        for (let i = 1; i <= numPlayers; i++) {
+            let total = 0;
+            const inputs = document.querySelectorAll(`.p${i}`);
+            inputs.forEach(input => {
+                total += parseInt(input.value) || 0;
+            });
+            document.getElementById(`total-p${i}`).value = total;
+        }
+    }
+
+    function resetScores() {
+        const inputs = document.querySelectorAll('.score-input');
+        inputs.forEach(input => input.value = 0);
+        calculate();
+    }
+
+    // Start
+    initApp();
+</script>
+
+</body>
+</html>
