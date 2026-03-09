@@ -4,6 +4,9 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Cascadia Score Calculator</title>
+    
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🏔</text></svg>">
+
     <style>
         :root {
             --primary: #2c3e50;
@@ -82,7 +85,6 @@
             border: 1px solid var(--border);
             line-height: 1.6;
         }
-        .rules-container h2 { color: var(--primary); border-bottom: 2px solid var(--accent); padding-bottom: 8px; margin-top: 0; }
         .rules-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 25px; margin-top: 20px; }
         .rule-box h3 { margin-top: 0; color: var(--accent); font-size: 1.1rem; }
         .rule-box ul { padding-left: 20px; margin: 0; }
@@ -117,7 +119,7 @@
         <div class="rule-box">
             <h3>🐻 Wildlifekaarten</h3>
             <ul>
-                <li>Elk diersoort (Beer, Wapiti, Havik, Vos, Zalm) heeft een eigen scorekaart.</li>
+                <li>Elk diersoort (Beer, Wapiti, Buizerd, Vos, Zalm) heeft een eigen scorekaart.</li>
                 <li>Punten worden verdiend op basis van specifieke patronen of groepen.</li>
                 <li>Vul per diersoort de behaalde score in.</li>
             </ul>
@@ -134,7 +136,7 @@
 
         <div class="rule-box">
             <h3>🏆 Meerderheidsbonussen</h3>
-            <p style="font-size: 0.9rem; margin-top:0;">Dit wordt automatisch berekend op basis van de leefgebieden:</p>
+            <p style="font-size: 0.9rem; margin-top:0;">Automatisch berekend op basis van de leefgebieden:</p>
             <ul>
                 <li><strong>2 Spelers:</strong> Grootste leefgebied krijgt <strong>+2 punten</strong>. Bij gelijkspel krijgen beiden <strong>+1</strong>.</li>
                 <li><strong>3-4 Spelers:</strong> Grootste krijgt <strong>+3 punten</strong>, tweede plek <strong>+1 punt</strong>.</li>
@@ -143,9 +145,9 @@
         </div>
 
         <div class="rule-box">
-            <h3>🌲 Natuurtokens</h3>
+            <h3>🌲 Natuurfiches</h3>
             <ul>
-                <li>Elke ongebruikte dennenappel (natuurtoken) aan het eind van het spel is <strong>1 punt</strong> waard.</li>
+                <li>Elke ongebruikte dennenappel (natuurfiche) aan het eind van het spel is <strong>1 punt</strong> waard.</li>
             </ul>
         </div>
     </div>
@@ -155,7 +157,7 @@
     const wildlife = [
         { id: 'bear', name: '🐻 Beren' },
         { id: 'elk', name: '🦌 Wapiti\'s' },
-        { id: 'hawk', name: '🦅 Haviken' },
+        { id: 'hawk', name: '🦅 Buizerds' },
         { id: 'fox', name: '🦊 Vossen' },
         { id: 'salmon', name: '🐟 Zalmen' }
     ];
@@ -200,7 +202,7 @@
         }
 
         html += `<div class="cell section-header">Overig</div>`;
-        html += `<div class="cell label-cell">🌲 Natuurtokens</div>`;
+        html += `<div class="cell label-cell">🌲 Natuurfiches</div>`;
         for (let i = 1; i <= numPlayers; i++) {
             html += `<div class="cell"><input type="number" class="score-input p${i} other" value="0" min="0" oninput="calculate()"></div>`;
         }
