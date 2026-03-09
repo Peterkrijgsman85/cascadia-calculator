@@ -148,35 +148,45 @@
 </div>
 
 <div class="rules-container">
-    <h2>Uitleg Scoreverloop</h2>
+    <h2>Uitgebreide Spelregels & Scoreverloop</h2>
     <div class="rules-grid">
         <div class="rule-box">
-            <h3>🐻 Dierkaarten</h3>
+            <h3>⚙️ Setup: Tegels wegleggen</h3>
             <ul>
-                <li><strong>Dierenkaarten:</strong> Gebruik de scorekaart per diersoort.</li>
-                <li>Vul per dier het totaal aantal punten in.</li>
+                <li><strong>2 spelers:</strong> Verwijder 43 tegels (speel met 42).</li>
+                <li><strong>3 spelers:</strong> Verwijder 22 tegels (speel met 63).</li>
+                <li><strong>4 spelers:</strong> Gebruik alle 85 tegels (basisspel).</li>
+                <li><strong>5-6 spelers:</strong> Gebruik alle tegels inclusief uitbreiding.</li>
             </ul>
         </div>
         <div class="rule-box">
-            <h3>🏞 Leefgebieden & Bonussen</h3>
+            <h3>🐻 Wildlife & Gebieden</h3>
             <ul>
-                <li><strong>Grootste Gebied:</strong> Tel de tegels van je grootste aaneengesloten groep per terreintype. Elke tegel = 1 punt.</li>
-                <li><strong>Meerderheid (2 spelers):</strong> Grootste krijgt +2. Bij gelijkspel beiden +1.</li>
-                <li><strong>Meerderheid (3-6 spelers):</strong> Grootste krijgt +3, tweede plek +1. Bij gedeelde 1e plaats beiden +2 (geen 2e plek bonus).</li>
+                <li><strong>Dierkaarten:</strong> Gebruik de scorekaart per diersoort. Vul het totaal per dier in.</li>
+                <li><strong>Grootste Gebied:</strong> Tel de tegels van je grootste groep per terreintype. Elke tegel = 1 punt.</li>
+                <li><strong>Bonussen:</strong> Grootste krijgt +3, tweede +1 (bij 3-6 spelers). Bij 2 spelers krijgt de grootste +2.</li>
             </ul>
         </div>
         <div class="rule-box">
             <h3>🏛 Landmarks <span class="landmark-badge">Uitbreiding</span></h3>
             <ul>
-                <li><strong>Landmark-fiches:</strong> Punten die direct op het verzamelde houten landmark-fiche staan.</li>
-                <li><strong>Landmark-kaarten:</strong> Bonuspunten die je aan het eind krijgt op basis van de specifieke kaart die bij jouw landmark hoort.</li>
+                <li><strong>Landmark-fiches:</strong> Punten die op het fysieke houten landmark-fiche staan.</li>
+                <li><strong>Landmark-kaarten:</strong> Bonuspunten op basis van de kaart die bij jouw landmark hoort.</li>
             </ul>
         </div>
         <div class="rule-box">
-            <h3>🌲 Natuurfiches & Totaal</h3>
+            <h3>🌲 Natuurfiches</h3>
             <ul>
-                <li><strong>Natuurfiches:</strong> Elk ongebruikt natuurfiche aan het einde van het spel is <strong>1 punt</strong> waard.</li>
-                <li><strong>Gelijkspel:</strong> Bij een gelijke eindstand wint de speler met de meeste natuurfiches.</li>
+                <li><strong>Dennenappels:</strong> Elk ongebruikt natuurfiche aan het einde van het spel is <strong>1 punt</strong> waard.</li>
+                <li>Gebruik ze tijdens het spel om keuzes te verversen of specifieke combinaties te pakken.</li>
+            </ul>
+        </div>
+        <div class="rule-box">
+            <h3>🏆 Eindstand & Gelijkspel</h3>
+            <ul>
+                <li><strong>Totaal:</strong> De som van alle dieren, gebieden, bonussen en natuurfiches.</li>
+                <li><strong>Tie-break:</strong> Bij een gelijkspel wint de speler met de <strong>meeste natuurfiches</strong>.</li>
+                <li>Is het dan nog gelijk? Dan delen de spelers de overwinning.</li>
             </ul>
         </div>
     </div>
@@ -247,14 +257,15 @@
             html += `<div class="cell"><input type="number" id="bonus-p${i}" class="bonus-input" value="0" readonly></div>`;
         }
 
-        // Overig
-        html += `<div class="cell section-header">Overig</div>`;
+        // Natuur
+        html += `<div class="cell section-header">Natuur</div>`;
         html += `<div class="cell label-cell">🌲 Natuurfiches</div>`;
         for (let i = 1; i <= numPlayers; i++) {
             html += `<div class="cell"><input type="number" class="score-input p${i}" value="0" min="0" oninput="calculate()" onfocus="clearZero(this)" onblur="restoreZero(this)"></div>`;
         }
 
         // Totaal
+        html += `<div class="cell section-header">Resultaat</div>`;
         html += `<div class="cell label-cell total-label">EINDTOTAAL</div>`;
         for (let i = 1; i <= numPlayers; i++) {
             html += `<div class="cell total-cell"><input type="number" id="total-p${i}" value="0" readonly></div>`;
