@@ -57,8 +57,16 @@ function updateName(index, value) {
 
 /* ---------------- START SCREEN ---------------- */
 
-function renderStart() {
-  const app = document.getElementById("app");
+function render() {
+  if (state.step === -1) return renderStart();
+
+  if (state.step >= categories.length) return renderResult();
+
+  if (!categories[state.step]) {
+    state.step = -1;
+    save();
+    return renderStart();
+  }
 
   app.innerHTML = `
     <div class="container">
