@@ -91,7 +91,6 @@
             outline-color: var(--accent);
         }
 
-        /* Dynamische naamvelden in de koptekst */
         .name-input {
             width: 90%;
             border: none;
@@ -147,7 +146,7 @@
         .rule-box li { margin-bottom: 8px; font-size: 0.9rem; }
         .landmark-badge { background: #eef2ff; color: #4338ca; padding: 2px 6px; border-radius: 4px; font-size: 0.7rem; font-weight: bold; text-transform: uppercase; }
 
-        /* Gecentreerde desktop-stijlen (vrijgegeven vanaf tabletschermen) */
+        /* Gecentreerde desktop-stijlen */
         @media (min-width: 769px) {
             body { padding: 15px; }
             .card { 
@@ -223,6 +222,16 @@
         <div class="rule-box">
             <h3>🏛 Landmarks <span class="landmark-badge">Uitbreiding</span></h3>
             <ul>
+                <li><strong>Landmarkkaarten per spel:</strong> Leg willekeurig 1 kaart per leefgebiedtype open (altijd 5 kaarten in totaal).</li>
+                <li><strong>Houten fiches in voorraad:</strong> Neem per leefgebiedtype fiches op basis van aantal spelers:
+                    <ul>
+                        <li><strong>1-2 spelers:</strong> 2 fiches per type.</li>
+                        <li><strong>3 spelers:</strong> 3 fiches per type.</li>
+                        <li><strong>4 spelers:</strong> 4 fiches per type.</li>
+                        <li><strong>5-6 spelers:</strong> Alle fiches per type.</li>
+                    </ul>
+                </li>
+                <li><strong>Plaatsen:</strong> Zodra je een aaneengesloten leefgebied van <strong>ten minste 5 tegels</strong> groot maakt, mag je direct (vrijwillig) een landmark-fiche van dat type op een van die tegels leggen. Je mag daarna op die specifieke tegel geen dieren meer plaatsen.</li>
                 <li><strong>Landmark-fiches:</strong> Punten die op het fysieke houten landmark-fiche staan.</li>
                 <li><strong>Landmark-kaarten:</strong> Bonuspunten op basis van de kaart die bij jouw landmark hoort.</li>
             </ul>
