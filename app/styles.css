@@ -501,3 +501,44 @@ button {
   transform: scale(0.9);
   background: #fca5a5;
 }
+
+/* Zwevende tandwiel/info knop op het setup scherm */
+.btn-info-floating {
+  position: absolute;
+  top: 4px;
+  right: 16px;
+  background: white;
+  border: 1px solid var(--border-color);
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  font-size: 18px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+  z-index: 5;
+}
+.btn-info-floating:active {
+  transform: scale(0.9);
+  background: var(--bg-main);
+}
+
+/* Prullenbak knop mooi geïntegreerd naast de hoofdaanwijzer */
+.btn-reset-inline {
+  background: #fee2e2;
+  border: 1px solid #fca5a5;
+  width: 54px;
+  height: 54px; /* Zelfde hoogte als de btn-primary */
+  border-radius: 12px;
+  font-size: 20px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s ease;
+  touch-action: manipulation;
+}
+.btn-reset-inline:active {
+  transform: scale(0.95);
+  background: #fca5a5;
+}
