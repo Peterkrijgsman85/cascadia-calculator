@@ -1,4 +1,4 @@
-const CACHE = "cascadia-v2";
+const CACHE = "cascadia-v3";
 
 const FILES = [
   "./",
