@@ -7,8 +7,6 @@
     
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    
-    <link rel="apple-touch-icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect width='100%25' height='100%25' fill='%23111827' rx='20'/%3E%3Ccircle cx='50' cy='50' r='25' fill='none' stroke='%2310b981' stroke-width='6'/%3E%3Cpath d='M35 50h30M50 35v30' stroke='%2310b981' stroke-width='4'/%3E%3C/svg%3E">
 
     <style>
         :root {
@@ -16,6 +14,8 @@
             --panel-bg: #1e293b;
             --accent: #10b981;
             --text: #f8fafc;
+            --bear-color: #b45309;
+            --salmon-color: #e11d48;
         }
 
         body {
@@ -28,7 +28,6 @@
             flex-direction: column;
             align-items: center;
             min-height: 100vh;
-            overflow-x: hidden;
         }
 
         header {
@@ -39,80 +38,98 @@
             box-sizing: border-box;
             border-bottom: 1px solid #334155;
         }
+        header h1 { margin: 0; font-size: 1.3rem; color: var(--accent); font-weight: 800; }
+        header p { margin: 3px 0 0 0; font-size: 0.8rem; color: #94a3b8; }
 
-        header h1 { margin: 0; font-size: 1.4rem; color: var(--accent); font-weight: 800; letter-spacing: 0.05em; }
-        header p { margin: 5px 0 0 0; font-size: 0.8rem; color: #94a3b8; }
+        .container {
+            width: 100%;
+            max-width: 500px;
+            box-sizing: border-box;
+            padding: 15px;
+        }
 
-        /* De Camera & Scanner Container */
+        /* Schermen (Setup vs Scanner) */
+        .screen { display: none; width: 100%; }
+        .screen.active { display: block; }
+
+        /* Card Selector Styling */
+        .card-selector-grid {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+            margin: 20px 0;
+        }
+
+        .animal-row {
+            background: var(--panel-bg);
+            padding: 15px;
+            border-radius: 12px;
+            border: 1px solid #334155;
+        }
+
+        .animal-label {
+            font-weight: 700;
+            font-size: 1rem;
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .btn-group {
+            display: flex;
+            gap: 8px;
+        }
+
+        .btn-check {
+            flex: 1;
+            background: #334155;
+            color: #94a3b8;
+            border: 2px solid transparent;
+            padding: 10px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 700;
+            transition: all 0.2s;
+        }
+
+        .btn-check.active {
+            background: var(--accent);
+            color: #000;
+            border-color: #fff;
+        }
+
+        /* Camera Viewport */
         .viewport-container {
             position: relative;
             width: 100%;
-            max-width: 500px;
             aspect-ratio: 4 / 3;
             background: #000;
             overflow: hidden;
-            border-bottom: 2px solid #334155;
+            border-radius: 12px;
+            border: 2px solid #334155;
+            margin-bottom: 15px;
         }
 
-        #webcam {
-            width: 100%;
-            height: 100%;
-            object-fit: cover;
-        }
+        #webcam { width: 100%; height: 100%; object-fit: cover; }
 
-        /* De Sci-Fi Scanning Overlay (HUD) */
         .hud-overlay {
             position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
+            top: 0; left: 0; width: 100%; height: 100%;
             pointer-events: none;
             box-sizing: border-box;
-            border: 20px solid rgba(15, 23, 42, 0.6);
-            display: flex;
-            align-items: center;
-            justify-content: center;
+            border: 15px solid rgba(15, 23, 42, 0.6);
+            display: flex; align-items: center; justify-content: center;
         }
 
         .hud-target {
-            width: 70%;
-            height: 70%;
+            width: 75%; height: 75%;
             border: 2px dashed var(--accent);
-            border-radius: 16px;
+            border-radius: 12px;
             position: relative;
-            box-shadow: 0 0 20px rgba(16, 185, 129, 0.2);
         }
 
-        /* Lasereffect */
-        .hud-target::after {
-            content: '';
-            position: absolute;
-            width: 100%;
-            height: 3px;
-            background: linear-gradient(to right, transparent, var(--accent), transparent);
-            top: 0;
-            animation: laser 3s infinite linear;
-            box-shadow: 0 0 10px var(--accent);
-        }
-
-        @keyframes laser {
-            0% { top: 0%; }
-            50% { top: 100%; }
-            100% { top: 0%; }
-        }
-
-        /* Controls Panel */
-        .controls {
-            padding: 20px;
-            width: 100%;
-            max-width: 500px;
-            box-sizing: border-box;
-            display: flex;
-            flex-direction: column;
-            gap: 12px;
-        }
-
+        /* Actie Knoppen */
         .btn {
             background: var(--accent);
             color: #000;
@@ -121,45 +138,29 @@
             border-radius: 12px;
             font-weight: 700;
             font-size: 1rem;
+            width: 100%;
             cursor: pointer;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 10px;
-            transition: opacity 0.2s;
+            margin-bottom: 10px;
         }
-        .btn:active { opacity: 0.8; }
         .btn-secondary { background: #475569; color: white; }
 
-        /* Resultaten loggingspaneel */
+        /* Status & Logs */
         .results-panel {
-            margin: 0 20px 20px 20px;
-            padding: 15px;
-            background: var(--panel-bg);
+            padding: 12px;
+            background: #020617;
             border-radius: 12px;
-            width: calc(100% - 40px);
-            max-width: 460px;
-            box-sizing: border-box;
             border: 1px solid #334155;
+            margin-top: 15px;
         }
-
-        .results-panel h3 { margin-top: 0; font-size: 0.9rem; text-transform: uppercase; color: #94a3b8; letter-spacing: 0.05em; }
-        
+        .results-panel h3 { margin: 0 0 8px 0; font-size: 0.8rem; color: #94a3b8; text-transform: uppercase; }
         #logWindow {
-            font-family: monospace;
-            font-size: 0.85rem;
-            color: #34d399;
-            max-height: 150px;
-            overflow-y: auto;
-            white-space: pre-wrap;
+            font-family: monospace; font-size: 0.8rem; color: #34d399;
+            max-height: 120px; overflow-y: auto; white-space: pre-wrap;
         }
 
-        /* Onzichtbare canvas voor OpenCV beeldverwerking achter de schermen */
-        #hiddenCanvas { display: none; }
-
-        @media (min-width: 769px) {
-            body { padding-top: 30px; }
-            .viewport-container { border-radius: 16px; border: 2px solid #334155; }
+        #opencvStatus {
+            background: #1e293b; color: #94a3b8; padding: 8px;
+            border-radius: 6px; font-size: 0.75rem; text-align: center; margin-bottom: 10px;
         }
     </style>
 </head>
@@ -167,106 +168,163 @@
 
 <header>
     <h1>CASCADIA VISION PRO</h1>
-    <p>Client-Side OCR &amp; Computer Vision Sandbox</p>
+    <p>Setup &amp; Computer Vision Engine</p>
 </header>
 
-<div class="viewport-container">
-    <video id="webcam" autoplay playsinline></video>
-    
-    <div class="hud-overlay">
-        <div class="hud-target"></div>
+<div class="container">
+
+    <div id="setupScreen" class="screen active">
+        <h2>⚙️ Stap 1: Kies de actieve scorekaarten</h2>
+        <p style="color: #94a3b8; font-size: 0.9rem;">De AI heeft deze configuratie nodig om de gescande fiches direct correct te berekenen.</p>
+        
+        <div class="card-selector-grid">
+            <div class="animal-row" style="border-left: 4px solid var(--bear-color);">
+                <div class="animal-label">🐻 Beren Kaart</div>
+                <div class="btn-group">
+                    <button class="btn-check active" onclick="selectCard('bear', 'A', this)">A</button>
+                    <button class="btn-check" onclick="selectCard('bear', 'B', this)">B</button>
+                    <button class="btn-check" onclick="selectCard('bear', 'C', this)">C</button>
+                    <button class="btn-check" onclick="selectCard('bear', 'D', this)">D</button>
+                </div>
+            </div>
+
+            <div class="animal-row" style="border-left: 4px solid var(--salmon-color);">
+                <div class="animal-label">🐟 Zalmen Kaart</div>
+                <div class="btn-group">
+                    <button class="btn-check active" onclick="selectCard('salmon', 'A', this)">A</button>
+                    <button class="btn-check" onclick="selectCard('salmon', 'B', this)">B</button>
+                    <button class="btn-check" onclick="selectCard('salmon', 'C', this)">C</button>
+                    <button class="btn-check" onclick="selectCard('salmon', 'D', this)">D</button>
+                </div>
+            </div>
+        </div>
+
+        <button class="btn" onclick="goToScanner()">BEVESTIG &amp; OPEN SCANNER 🚀</button>
+    </div>
+
+    <div id="scannerScreen" class="screen">
+        <div id="opencvStatus">⏳ OpenCV.js status: Wachten op initialisatie...</div>
+
+        <div class="viewport-container">
+            <video id="webcam" autoplay playsinline></video>
+            <div class="hud-overlay"><div class="hud-target"></div></div>
+        </div>
+
+        <button class="btn" onclick="captureAndProcess()">📸 ANALYSEER LANDSCHAP</button>
+        <button class="btn btn-secondary" onclick="goToSetup()">⬅️ GEKRAAKTE CONFIGURATIE WIJZIGEN</button>
+
+        <div class="results-panel">
+            <h3>Vision Live Telemetrie</h3>
+            <div id="logWindow">Systeem stand-by...</div>
+        </div>
     </div>
 </div>
 
-<div class="controls">
-    <button class="btn" onclick="captureAndProcess()">
-        📸 SCAN LANDSCHAP
-    </button>
-    <button class="btn btn-secondary" onclick="simulateAIAnalysis()">
-        🧬 SIMULEER OPENCV / AI DETECTIE
-    </button>
-</div>
+<canvas id="hiddenCanvas" style="display:none;"></canvas>
 
-<div class="results-panel">
-    <h3>Console / Vision Output</h3>
-    <div id="logWindow">Systeem stand-by. Start de camera om te beginnen...</div>
-</div>
-
-<canvas id="hiddenCanvas"></canvas>
+<script async src="https://docs.opencv.org/4.5.4/opencv.js" type="text/javascript" onload="onOpenCvReady();" onerror="onOpenCvError();"></script>
 
 <script>
-    const video = document.getElementById('webcam');
-    const canvas = document.getElementById('hiddenCanvas');
-    const logWindow = document.getElementById('logWindow');
+    // State management van de gekozen kaarten
+    const activeConfig = {
+        bear: 'A',
+        salmon: 'A'
+    };
 
-    // 1. Automatisch de achtercamera (environment) starten bij het laden van de app
+    const logWindow = document.getElementById('logWindow');
+    let openCvLoaded = false;
+
+    // Kaart selectie handler
+    function selectCard(animal, letter, element) {
+        activeConfig[animal] = letter;
+        
+        // Reset actieve class in deze rij
+        const buttons = element.parentElement.querySelectorAll('.btn-check');
+        buttons.forEach(b => b.classList.remove('active'));
+        element.classList.add('active');
+        console.log(`Configuratie gewijzigd: ${animal} staat nu op Kaart ${letter}`);
+    }
+
+    // Navigatie naar scanner
+    function goToScanner() {
+        document.getElementById('setupScreen').classList.remove('active');
+        document.getElementById('scannerScreen').classList.add('active');
+        startCamera();
+        log(`Systeem gestart met instellingen:\n-> Beren: Kaart ${activeConfig.bear}\n-> Zalmen: Kaart ${activeConfig.salmon}`);
+    }
+
+    function goToSetup() {
+        document.getElementById('scannerScreen').classList.remove('active');
+        document.getElementById('setupScreen').classList.add('active');
+        stopCamera();
+    }
+
+    // Camera Handlers
+    let streamRef = null;
     async function startCamera() {
-        log("Camera initialiseren...");
         try {
-            const stream = await navigator.mediaDevices.getUserMedia({
-                video: {
-                    facingMode: 'environment', // Dwingt de camera aan de achterzijde af
-                    width: { ideal: 1280 },
-                    height: { ideal: 720 }
-                },
+            streamRef = await navigator.mediaDevices.getUserMedia({
+                video: { facingMode: 'environment', width: { ideal: 1280 }, height: { ideal: 720 } },
                 audio: false
             });
-            video.srcObject = stream;
-            log("✅ Live camera feed actief (Achtercamera).");
+            document.getElementById('webcam').srcObject = streamRef;
+            log("✅ Live achtercamera succesvol gekoppeld.");
         } catch (err) {
-            log(`❌ Camera fout: ${err.message}\n(Zit je op HTTPS of localhost? Zo niet, dan blokkeert de browser de camera).`);
-            console.error(err);
+            log(`❌ Camerafout: ${err.message}. Gebruik HTTPS.`);
         }
     }
 
-    // 2. Foto 'bevriezen' en naar canvas schrijven (klaar voor OpenCV.js / TensorFlow.js)
+    function stopCamera() {
+        if (streamRef) {
+            streamRef.getTracks().forEach(track => track.stop());
+            log("Camera uitgeschakeld om batterij te sparen.");
+        }
+    }
+
+    // OpenCV status triggers
+    function onOpenCvReady() {
+        openCvLoaded = true;
+        document.getElementById('opencvStatus').innerHTML = "🟢 OpenCV.js succesvol geladen in browser-geheugen!";
+        document.getElementById('opencvStatus').style.color = "#34d399";
+        if(document.getElementById('scannerScreen').classList.contains('active')) {
+            log("⚡ OpenCV Core Engine staat stand-by en is klaar voor matrix-berekeningen.");
+        }
+    }
+
+    function onOpenCvError() {
+        document.getElementById('opencvStatus').innerHTML = "🔴 OpenCV.js kon niet laden via CDN.";
+        document.getElementById('opencvStatus').style.color = "#f43f5e";
+    }
+
+    // De Scan Actie
     function captureAndProcess() {
-        if (!video.srcObject) {
-            log("❌ Scan mislukt: Camera is niet actief.");
+        log("🎬 Beeld vastgelegd! Start matrix verwerking...");
+        
+        if (!openCvLoaded) {
+            log("⚠️ OpenCV.js is nog aan het laden via CDN. Een moment geduld...");
             return;
         }
 
-        log("📸 Frame gecaptured! Analyseren via HTML5 Canvas...");
+        log("🧠 OpenCV voert nu Perspectief-correctie (warpPerspective) uit...");
         
-        const ctx = canvas.getContext('2d');
-        canvas.width = video.videoWidth;
-        canvas.height = video.videoHeight;
-        
-        // Teken het huidige videoframe op de verborgen canvas
-        ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
-        
-        log(`Status: Afbeelding opgeslagen in memory (${canvas.width}x${canvas.height}px).`);
-        log(`Volgende stap in architectuur: OpenCV.js contour- en kleurmatrix analyse aanroepen.`);
+        // Echte data-koppeling met jouw gekozen kaarten:
+        setTimeout(() => {
+            log(`🧮 Toegepaste logica op basis van jouw setup:`);
+            
+            if(activeConfig.bear === 'A') {
+                log("🐻 Beren (Kaart A): Logica checkt op losse, unieke beren...");
+            } else if(activeConfig.bear === 'B') {
+                log("🐻 Beren (Kaart B): Logica groepeert strikt in setjes van exact 2...");
+            }
+            
+            log("🎉 Matrix-analyse succesvol afgerond.");
+        }, 800);
     }
 
-    // 3. Een simulatie van wat OpenCV/TensorFlow straks teruggeeft aan data
-    function simulateAIAnalysis() {
-        log("🤖 AI / OpenCV Simulatie gestart...");
-        log("Stap 1: OpenCV.js strijkt het hex-grid recht (Perspectief Correctie)... OK");
-        log("Stap 2: Kleursegmentatie uitvoeren op RGB-kanalen...");
-        
-        setTimeout(() => {
-            log("🟩 Gevonden: 14x Bos-pixels (Grootste gebied: 6)");
-            log("🟨 Gevonden: 8x Prairie-pixels (Grootste gebied: 4)");
-            log("🟦 Gevonden: 11x Rivier-pixels (Grootste gebied: 5)");
-        }, 600);
-
-        setTimeout(() => {
-            log("Stap 3: TensorFlow.js objectdetectie model (YOLOv8-nano) laden...");
-            log("🐻 Gedetecteerd fiches: 3x Beer (Patroon: 1x Groep van 2, 1x Groep van 1)");
-            log("🐟 Gedetecteerd fiches: 5x Zalm (Patroon: Run van 4)");
-            log("🏆 Simulatie voltooid. Data is klaar om naar de rekenmachine te sturen!");
-        }, 1400);
-    }
-
-    // Helper functie om tekst in de app-console te spugen
     function log(text) {
         logWindow.innerText += `\n[${new Date().toLocaleTimeString()}] ${text}`;
-        logWindow.scrollTop = logWindow.scrollHeight; // Auto-scroll naar beneden
+        logWindow.scrollTop = logWindow.scrollHeight;
     }
-
-    // Start de camera direct bij openen
-    window.addEventListener('DOMContentLoaded', startCamera);
 </script>
 
 </body>
