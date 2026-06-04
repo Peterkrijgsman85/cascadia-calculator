@@ -2,7 +2,7 @@
 <html lang="nl">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     <title>Cascadia Score App</title>
     
     <meta name="apple-mobile-web-app-capable" content="yes">
@@ -27,86 +27,88 @@
             display: flex;
             flex-direction: column;
             align-items: center;
-            padding: 15px;
+            padding: 0;
             margin: 0;
-            /* Voorkomt dat het scherm veert bij scrollen op iOS */
-            background-attachment: fixed;
+            width: 100vw;
+            overflow-x: hidden;
+            -webkit-tap-highlight-color: transparent;
         }
 
-        /* iOS safe areas voor telefoons met een notch/thuisbalk */
-        .card { 
+        /* De app-container gebruikt nu de volledige breedte op iOS */
+        .app-container { 
             background: white; 
-            padding: 25px; 
-            border-radius: 16px; 
-            box-shadow: 0 10px 25px rgba(0,0,0,0.05);
+            padding: 15px; 
             width: 100%;
-            max-width: 1000px;
             box-sizing: border-box;
-            margin-bottom: 25px;
-            margin-top: env(safe-area-inset-top, 0px);
+            margin-top: env(safe-area-inset-top, 20px); /* Rekening houden met iOS statusbalk */
+            padding-left: calc(15px + env(safe-area-inset-left, 0px));
+            padding-right: calc(15px + env(safe-area-inset-right, 0px));
         }
 
-        h1 { text-align: center; color: var(--accent); margin-bottom: 5px; margin-top: 10px; }
-        .subtitle { text-align: center; color: #64748b; margin-bottom: 20px; font-size: 0.9rem; }
+        h1 { text-align: center; color: var(--accent); margin-bottom: 2px; margin-top: 5px; font-size: 1.8rem; }
+        .subtitle { text-align: center; color: #64748b; margin-bottom: 15px; font-size: 0.85rem; }
         
         .setup { 
             text-align: center; 
-            margin-bottom: 20px; 
+            margin-bottom: 15px; 
             padding-bottom: 15px; 
             border-bottom: 1px solid var(--border);
             display: flex;
             justify-content: center;
-            gap: 20px;
+            gap: 15px;
             flex-wrap: wrap;
             align-items: center;
         }
 
         .setup select, .setup label {
-            font-size: 1rem;
+            font-size: 0.95rem;
         }
 
+        /* Volledige breedte voor de tabel-wrapper en soepel scrollen */
         .table-responsive {
             width: 100%;
             overflow-x: auto;
-            -webkit-overflow-scrolling: touch;
+            -webkit-overflow-scrolling: touch; /* Zorgt voor native iOS scroll-gevoel */
             border-radius: 8px;
             border: 1px solid var(--border);
+            margin-bottom: 15px;
         }
 
         .score-table { 
             display: grid; 
             gap: 1px; 
             background-color: var(--border);
-            min-width: 600px; /* Iets breder gemaakt voor de spelersnamen */
+            width: 100%;
+            min-width: 340px; /* Zorgt dat hij nooit té ver in elkaar krimpt */
         }
 
-        .cell { background: white; padding: 12px; display: flex; align-items: center; justify-content: center; }
-        .header-cell { background: #f1f5f9; font-weight: bold; text-transform: uppercase; font-size: 0.75rem; color: #64748b; }
-        .section-header { background: #f8fafc; font-weight: bold; grid-column: 1 / -1; justify-content: flex-start; padding-left: 15px; border-top: 2px solid var(--border); font-size: 0.85rem; }
-        .label-cell { justify-content: flex-start; font-weight: 600; font-size: 0.9rem; background: #fdfdfd; min-width: 160px; }
+        .cell { background: white; padding: 10px 6px; display: flex; align-items: center; justify-content: center; }
+        .header-cell { background: #f1f5f9; font-weight: bold; text-transform: uppercase; font-size: 0.7rem; color: #64748b; padding: 12px 4px; }
+        .section-header { background: #f8fafc; font-weight: bold; grid-column: 1 / -1; justify-content: flex-start; padding-left: 10px; border-top: 1px solid var(--border); font-size: 0.8rem; height: 30px; }
+        .label-cell { justify-content: flex-start; font-weight: 600; font-size: 0.85rem; background: #fdfdfd; min-width: 110px; padding-left: 8px; }
 
         input[type="number"] {
-            width: 55px;
-            padding: 8px;
+            width: 45px;
+            padding: 6px;
             border: 1px solid #cbd5e1;
             border-radius: 4px;
             text-align: center;
-            font-size: 1rem;
+            font-size: 0.95rem;
             outline-color: var(--accent);
         }
 
-        /* Input voor spelersnaam */
+        /* Spelersnaam input styling */
         .name-input {
             width: 90%;
             border: none;
             background: transparent;
             text-align: center;
             font-weight: bold;
-            font-size: 0.85rem;
+            font-size: 0.8rem;
             color: #2c3e50;
             text-transform: uppercase;
             border-bottom: 1px dashed #cbd5e1;
-            padding: 4px 0;
+            padding: 2px 0;
         }
         .name-input:focus {
             outline: none;
@@ -116,43 +118,53 @@
         .bonus-input { background-color: #f0fdf4; border-color: #bbf7d0 !important; font-weight: bold; color: var(--accent); pointer-events: none; }
         .total-label { background: #1e293b; color: white; font-weight: bold; }
         .total-cell { background: var(--accent); color: white; }
-        .total-cell input { background: transparent; border: none; color: white; font-weight: bold; pointer-events: none; }
+        .total-cell input { background: transparent; border: none; color: white; font-weight: bold; pointer-events: none; width: 100%; }
 
-        .btn-reset { margin-top: 20px; width: 100%; padding: 15px; background: #ef4444; color: white; border: none; border-radius: 8px; font-weight: bold; cursor: pointer; font-size: 1rem; }
+        .btn-reset { margin-top: 10px; width: 100%; padding: 14px; background: #ef4444; color: white; border: none; border-radius: 8px; font-weight: bold; cursor: pointer; font-size: 0.95rem; }
 
         .orientation-tip {
             display: none;
             background: #e1f5fe;
             color: #0277bd;
-            padding: 10px;
+            padding: 8px;
             border-radius: 8px;
-            margin-bottom: 15px;
-            font-size: 0.85rem;
+            margin-bottom: 12px;
+            font-size: 0.8rem;
             text-align: center;
             border: 1px solid #b3e5fc;
         }
 
-        @media (max-width: 768px) {
+        /* Alleen tonen als het scherm écht smal is (bijv. 3+ spelers in portretmodus) */
+        @media (max-width: 480px) {
             .orientation-tip { display: block; }
         }
 
-        .rules-container { width: 100%; max-width: 1000px; background: white; padding: 30px; border-radius: 16px; border: 1px solid var(--border); box-sizing: border-box; line-height: 1.6; margin-bottom: env(safe-area-inset-bottom, 0px); }
-        .rules-container h2 { color: var(--primary); border-bottom: 2px solid var(--accent); padding-bottom: 8px; margin-top: 0; }
-        .rules-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 25px; margin-top: 20px; }
-        .rule-box h3 { margin-top: 0; color: var(--accent); font-size: 1.1rem; border-bottom: 1px solid #eee; padding-bottom: 5px; }
-        .rule-box ul { padding-left: 20px; margin: 10px 0 0 0; }
-        .rule-box li { margin-bottom: 8px; font-size: 0.9rem; }
-        .landmark-badge { background: #eef2ff; color: #4338ca; padding: 2px 6px; border-radius: 4px; font-size: 0.7rem; font-weight: bold; text-transform: uppercase; }
+        .rules-container { 
+            width: 100%; 
+            background: white; 
+            padding: 20px 15px; 
+            box-sizing: border-box; 
+            line-height: 1.5; 
+            margin-top: 20px;
+            border-top: 1px solid var(--border);
+            margin-bottom: env(safe-area-inset-bottom, 20px); 
+        }
+        .rules-container h2 { color: var(--primary); border-bottom: 2px solid var(--accent); padding-bottom: 6px; margin-top: 0; font-size: 1.3rem; }
+        .rules-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 15px; margin-top: 15px; }
+        .rule-box h3 { margin-top: 0; color: var(--accent); font-size: 1rem; border-bottom: 1px solid #eee; padding-bottom: 3px; }
+        .rule-box ul { padding-left: 15px; margin: 8px 0 0 0; }
+        .rule-box li { margin-bottom: 6px; font-size: 0.85rem; }
+        .landmark-badge { background: #eef2ff; color: #4338ca; padding: 1px 4px; border-radius: 4px; font-size: 0.65rem; font-weight: bold; text-transform: uppercase; }
     </style>
 </head>
 <body>
 
-<div class="card">
+<div class="app-container">
     <h1>Cascadia Calculator</h1>
     <p class="subtitle">Officiële Nederlandse Puntentelling</p>
 
     <div class="orientation-tip">
-        📱 <strong>Tip:</strong> Kantel je scherm voor een volledig overzicht.
+        🔄 <strong>Tip:</strong> Kantel je iPhone horizontaal voor meer ruimte bij veel spelers!
     </div>
 
     <div class="setup">
@@ -168,7 +180,7 @@
         </div>
         <div>
             <input type="checkbox" id="useLandmarks" onchange="toggleLandmarks()">
-            <label for="useLandmarks"><strong>Landmarks Uitbreiding</strong></label>
+            <label for="useLandmarks"><strong>Landmarks</strong></label>
         </div>
     </div>
 
@@ -180,36 +192,21 @@
 </div>
 
 <div class="rules-container">
-    <h2>Spelregels & Scoreverloop</h2>
+    <h2>Spelregels Quick-Ref</h2>
     <div class="rules-grid">
         <div class="rule-box">
-            <h3>⚙️ Setup: Tegels wegleggen</h3>
+            <h3>⚙️ Tegels wegleggen</h3>
             <ul>
                 <li><strong>2 spelers:</strong> Verwijder 43 tegels (speel met 42).</li>
                 <li><strong>3 spelers:</strong> Verwijder 22 tegels (speel met 63).</li>
-                <li><strong>4 spelers:</strong> Gebruik alle 85 tegels (basisspel).</li>
-                <li><strong>5-6 spelers:</strong> Gebruik alle tegels inclusief uitbreiding.</li>
+                <li><strong>4 spelers:</strong> Gebruik alle 85 basistegels.</li>
             </ul>
         </div>
         <div class="rule-box">
-            <h3>🐻 Wildlife & Gebieden</h3>
+            <h3>🐻 Gebiedsbonussen</h3>
             <ul>
-                <li><strong>Dierkaarten:</strong> Vul het totaal per diersoort in.</li>
-                <li><strong>Grootste Gebied:</strong> Tel de tegels van je grootste groep per terreintype. Elke tegel = 1 punt.</li>
-                <li><strong>Bonussen:</strong> Grootste krijgt +3, tweede +1 (bij 3-6 spelers). Bij 2 spelers krijgt de grootste +2.</li>
-            </ul>
-        </div>
-        <div class="rule-box">
-            <h3>🏛 Landmarks <span class="landmark-badge">Uitbreiding</span></h3>
-            <ul>
-                <li><strong>Landmark-fiches:</strong> Punten op het houten landmark-fiche zelf.</li>
-                <li><strong>Landmark-kaarten:</strong> Bonuspunten op basis van de kaart die bij jouw landmark hoort.</li>
-            </ul>
-        </div>
-        <div class="rule-box">
-            <h3>🌲 Natuurfiches</h3>
-            <ul>
-                <li><strong>Natuurfiches:</strong> Elk ongebruikt natuurfiche aan het einde is <strong>1 punt</strong> waard.</li>
+                <li><strong>3-6 spelers:</strong> Grootste +3 ptn, tweede +1 pt.</li>
+                <li><strong>2 spelers:</strong> Alleen de grootste krijgt +2 ptn (bij gelijke stand beide +1 pt).</li>
             </ul>
         </div>
     </div>
@@ -232,7 +229,6 @@
         { id: 'riv', name: '🌊 Rivieren' }
     ];
 
-    // Laad initiële instellingen uit localStorage of gebruik defaults
     let config = JSON.parse(localStorage.getItem('cascadia_config')) || { players: 2, landmarks: false };
     let savedScores = JSON.parse(localStorage.getItem('cascadia_scores')) || {};
     let savedNames = JSON.parse(localStorage.getItem('cascadia_names')) || {};
@@ -244,12 +240,14 @@
         const numPlayers = config.players;
         const useLandmarks = config.landmarks;
         const table = document.getElementById('scoreTable');
-        table.style.gridTemplateColumns = `180px repeat(${numPlayers}, 1fr)`;
+        
+        // Verdeelt de kolommen nu perfect evenredig over de volledige schermbreedte
+        table.style.gridTemplateColumns = `120px repeat(${numPlayers}, minmax(50px, 1fr))`;
         
         let html = '';
         html += `<div class="cell header-cell">Categorie</div>`;
         for (let i = 1; i <= numPlayers; i++) {
-            let name = savedNames[`p${i}`] || `Speler ${i}`;
+            let name = savedNames[`p${i}`] || `SPELER ${i}`;
             html += `<div class="cell header-cell"><input type="text" class="name-input" data-player="p${i}" value="${name}" oninput="saveName(this)"></div>`;
         }
 
@@ -264,7 +262,7 @@
         });
 
         // Gebieden
-        html += `<div class="cell section-header">Leefgebieden (1 punt/tegel)</div>`;
+        html += `<div class="cell section-header">Leefgebieden</div>`;
         habitats.forEach((cat, index) => {
             html += `<div class="cell label-cell">${cat.name}</div>`;
             for (let i = 1; i <= numPlayers; i++) {
@@ -276,12 +274,12 @@
         // Landmarks
         if (useLandmarks) {
             html += `<div class="cell section-header">Landmarks</div>`;
-            html += `<div class="cell label-cell">🏛 Landmark Fiches</div>`;
+            html += `<div class="cell label-cell">🏛 Fiches</div>`;
             for (let i = 1; i <= numPlayers; i++) {
                 let val = savedScores[`p${i}_lm_f`] ?? 0;
                 html += `<div class="cell"><input type="number" class="score-input p${i}" data-key="p${i}_lm_f" value="${val}" min="0" oninput="updateScore(this)" onfocus="clearZero(this)" onblur="restoreZero(this)"></div>`;
             }
-            html += `<div class="cell label-cell">📜 Landmark Kaarten</div>`;
+            html += `<div class="cell label-cell">📜 Kaarten</div>`;
             for (let i = 1; i <= numPlayers; i++) {
                 let val = savedScores[`p${i}_lm_k`] ?? 0;
                 html += `<div class="cell"><input type="number" class="score-input p${i}" data-key="p${i}_lm_k" value="${val}" min="0" oninput="updateScore(this)" onfocus="clearZero(this)" onblur="restoreZero(this)"></div>`;
@@ -289,7 +287,7 @@
         }
 
         // Bonussen
-        html += `<div class="cell section-header">Grootste Leefgebied Bonussen</div>`;
+        html += `<div class="cell section-header">Leefgebied Bonussen</div>`;
         html += `<div class="cell label-cell">Bonus Totaal</div>`;
         for (let i = 1; i <= numPlayers; i++) {
             html += `<div class="cell"><input type="number" id="bonus-p${i}" class="bonus-input" value="0" readonly></div>`;
@@ -297,7 +295,7 @@
 
         // Natuur
         html += `<div class="cell section-header">Natuur</div>`;
-        html += `<div class="cell label-cell">🌲 Natuurfiches</div>`;
+        html += `<div class="cell label-cell">🌲 Fiches</div>`;
         for (let i = 1; i <= numPlayers; i++) {
             let val = savedScores[`p${i}_nature`] ?? 0;
             html += `<div class="cell"><input type="number" class="score-input p${i}" data-key="p${i}_nature" value="${val}" min="0" oninput="updateScore(this)" onfocus="clearZero(this)" onblur="restoreZero(this)"></div>`;
@@ -305,7 +303,7 @@
 
         // Totaal
         html += `<div class="cell section-header">Resultaat</div>`;
-        html += `<div class="cell label-cell total-label">EINDTOTAAL</div>`;
+        html += `<div class="cell label-cell total-label">TOTAAL</div>`;
         for (let i = 1; i <= numPlayers; i++) {
             html += `<div class="cell total-cell"><input type="number" id="total-p${i}" value="0" readonly></div>`;
         }
