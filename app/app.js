@@ -14,7 +14,6 @@ let state = {
 
 let previousMode = "setup";
 
-// Definieer alle mogelijke categorieën
 const allCategories = [
   { id: "bear", name: "Beren 🐻", color: "#b45309", icon: "🐻", isLandmark: false },
   { id: "elk", name: "Edelherten 🦌", color: "#15803d", icon: "🦌", isLandmark: false },
@@ -332,15 +331,20 @@ function updateMiniScoreboard() {
   const board = document.getElementById("mini-scoreboard");
   if (!board) return;
 
+  // HERSTELD: De mooie, originele horizontale scrolbare rij met badges
   const sorted = [...state.players].sort((a, b) => calculateTotal(b.name) - calculateTotal(a.name));
 
-  board.innerHTML = sorted.map((p, index) => `
-    <div class="mini-player-row">
-      <span class="mini-rank">${index + 1}.</span>
-      <span class="mini-name">${p.name}</span>
-      <span class="mini-score">${calculateTotal(p.name)} pt</span>
+  board.innerHTML = `
+    <div class="mini-score-badge-row" style="display: flex; gap: 8px; overflow-x: auto; padding: 4px 0; width: 100%; justify-content: center;">
+      ${sorted.map((p, index) => `
+        <div class="mini-badge" style="background: white; border: 1px solid var(--border-color); padding: 6px 12px; border-radius: 20px; font-size: 13px; font-weight: 600; display: flex; align-items: center; gap: 4px; white-space: nowrap;">
+          <span style="color: var(--text-muted); font-size: 11px;">#${index + 1}</span>
+          <span>${p.name}:</span>
+          <span style="color: var(--category-color);">${calculateTotal(p.name)}pt</span>
+        </div>
+      `).join("")}
     </div>
-  `).join("");
+  `;
 }
 
 function renderResult(app) {
@@ -348,48 +352,68 @@ function renderResult(app) {
 
   const winners = [...state.players].sort((a, b) => calculateTotal(b.name) - calculateTotal(a.name));
 
-  // HERSTELD: Prachtig eindscherm met kroontje en gedetailleerd overzicht per speler
+  // HERSTELD: Het originele, prachtige eindscherm met de gouden kroon en overzichten
   app.innerHTML = `
     <div class="result-screen core-container">
       <header class="hero-header">
         <span class="hero-icon">👑</span>
         <h1>Einduitslag</h1>
-        <p class="subtitle">En de winnaar is ${winners[0].name}!</p>
+        <p class="subtitle">Mooie pot gespeeld!</p>
       </header>
 
       <div class="leaderboard-stack">
-        ${winners.map((p, index) => `
-          <div class="leaderboard-card ${index === 0 ? 'winner' : ''}">
-            <div class="leaderboard-rank">${index === 0 ? '👑' : index + 1}</div>
-            <div class="leaderboard-details">
-              <h3>${p.name}</h3>
-              <p>${index === 0 ? 'Gefeliciteerd!' : 'Mooie score'}</p>
-            </div>
-            <div class="leaderboard-score">${calculateTotal(p.name)}<span>pt</span></div>
-          </div>
-        `).join("")}
+        ${winners.map((p, index) => {
+          if (index === 0) {
+            // De grote, prachtige winnaarskaart met kroon
+            return `
+              <div class="leaderboard-card winner" style="background: linear-gradient(135deg, #fef08a 0%, #fefcbf 100%); border: 2px solid #eab308; padding: 20px; border-radius: 16px; display: flex; align-items: center; justify-content: space-between; margin-bottom: 16px; box-shadow: 0 4px 6px -1px rgba(234, 179, 8, 0.2);">
+                <div style="display: flex; align-items: center; gap: 16px;">
+                  <div style="font-size: 32px;">👑</div>
+                  <div>
+                    <h3 style="margin: 0; font-size: 20px; font-weight: 700; color: #854d0e;">${p.name}</h3>
+                    <p style="margin: 2px 0 0 0; font-size: 12px; color: #a16207;">Winnaar van Cascadia!</p>
+                  </div>
+                </div>
+                <div style="font-size: 24px; font-weight: 800; color: #854d0e;">${calculateTotal(p.name)}<span style="font-size: 14px; font-weight: 500;">pt</span></div>
+              </div>
+            `;
+          } else {
+            // Strakke kaarten voor de overige spelers
+            return `
+              <div class="leaderboard-card" style="background: white; border: 1px solid var(--border-color); padding: 14px 16px; border-radius: 12px; display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px;">
+                <div style="display: flex; align-items: center; gap: 12px;">
+                  <div style="font-size: 14px; font-weight: 700; background: var(--bg-main); width: 28px; height: 28px; border-radius: 50%; display: flex; align-items: center; justify-content: center; color: var(--text-muted);">${index + 1}</div>
+                  <div>
+                    <h4 style="margin: 0; font-size: 16px; font-weight: 600;">${p.name}</h4>
+                  </div>
+                </div>
+                <div style="font-size: 18px; font-weight: 700; color: var(--text-main);">${calculateTotal(p.name)}<span style="font-size: 12px; font-weight: 400; color: var(--text-muted);">pt</span></div>
+              </div>
+            `;
+          }
+        }).join("")}
       </div>
 
-      <div class="card" style="margin-top: 24px;">
-        <label class="section-label">Gedetailleerd overzicht</label>
-        <div style="overflow-x: auto;">
+      <div class="card" style="margin-top: 24px; padding: 16px; background: white; border-radius: 16px; border: 1px solid var(--border-color);">
+        <label class="section-label" style="display: block; font-weight: 700; font-size: 13px; text-transform: uppercase; tracking: 0.05em; color: var(--text-muted); margin-bottom: 12px;">Gedetailleerd overzicht</label>
+        <div style="overflow-x: auto; -webkit-overflow-scrolling: touch;">
           <table class="result-table" style="width: 100%; border-collapse: collapse; font-size: 14px; text-align: left;">
             <thead>
               <tr style="border-bottom: 2px solid var(--border-color);">
-                <th style="padding: 8px 4px;">Onderdeel</th>
-                ${state.players.map(p => `<th style="padding: 8px 4px; text-align: right;">${p.name.substring(0,6)}</th>`).join("")}
+                <th style="padding: 8px 4px; font-weight: 600; color: var(--text-muted);">Onderdeel</th>
+                ${state.players.map(p => `<th style="padding: 8px 4px; text-align: right; font-weight: 600; color: var(--text-muted);">${p.name.substring(0,6)}</th>`).join("")}
               </tr>
             </thead>
             <tbody>
               ${categories.map(c => `
                 <tr style="border-bottom: 1px solid var(--border-color);">
-                  <td style="padding: 8px 4px;">${c.icon} ${c.name}</td>
+                  <td style="padding: 8px 4px; display: flex; align-items: center; gap: 4px;"><span>${c.icon}</span> <span>${c.name.split(" ")[0]}</span></td>
                   ${state.players.map(p => `<td style="padding: 8px 4px; text-align: right; font-weight: 500;">${getScore(p.name, c.id)}</td>`).join("")}
                 </tr>
               `).join("")}
               <tr style="font-weight: bold; background: var(--bg-main); border-top: 2px solid var(--border-color);">
-                <td style="padding: 10px 4px;">Totaal</td>
-                ${state.players.map(p => `<td style="padding: 10px 4px; text-align: right; color: var(--category-color);">${calculateTotal(p.name)}</td>`).join("")}
+                <td style="padding: 12px 4px;">Totaal</td>
+                ${state.players.map(p => `<td style="padding: 12px 4px; text-align: right; color: var(--category-color); font-size: 15px;">${calculateTotal(p.name)}</td>`).join("")}
               </tr>
             </tbody>
           </table>
@@ -397,7 +421,7 @@ function renderResult(app) {
       </div>
 
       <div style="margin-top: 24px; display: flex; flex-direction: column; gap: 12px;">
-        <button class="btn-primary" onclick="restartWithSamePlayers()" style="background: var(--category-color); box-shadow: none;">
+        <button class="btn-primary" onclick="restartWithSamePlayers()" style="background: var(--category-color); box-shadow: none; margin-bottom: 0;">
           Speel nogmaals 🔄
         </button>
         <button class="btn-select" onclick="resetGame()" style="width: 100%; padding: 16px; border-radius: 12px;">
@@ -453,7 +477,7 @@ function renderRulesScreen(app) {
         <div class="card">
           <label class="section-label">🏛 Landmarks Uitbreiding</label>
           <p style="margin: 6px 0 12px 0; line-height: 1.4; font-size: 14px;">
-            <strong>Plaatsen:</strong> Zodra je een leefgebied van <strong>≥ 5 tegels</strong> groot maakt, mag je direct (vrijwillig) een landmark-fiche van dat type pakken und op de laatst gelegde tegel zetten. Er mag daarna <strong>geen dier</strong> meer op!
+            <strong>Plaatsen:</strong> Zodra je een leefgebied van <strong>≥ 5 tegels</strong> groot maakt, mag je direct (vrijwillig) een landmark-fiche van dat type pakken en op de laatst gelegde tegel zetten. Er mag daarna <strong>geen dier</strong> meer op!
           </p>
           <p style="margin: 12px 0 0 0; line-height: 1.4; font-size: 14px;">
             <strong>Puntentelling:</strong> Tel de punten van je fysieke landmark-fiches én de behaalde bonuspunten van de landmark-kaarten bij elkaar op.
