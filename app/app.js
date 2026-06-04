@@ -1,5 +1,4 @@
 /* ---------------- STATE MANAGEMENT ---------------- */
-// De vaste lijst met namen voor jouw speelgroep
 const defaultNames = ["Hidde", "Jens", "Emma", "Peter", "Willemieke", "Pieter"];
 
 let state = {
@@ -25,12 +24,10 @@ const allCategories = [
   { id: "terrain", name: "Leefgebieden 🌲", color: "#16a34a", icon: "🌲", isLandmark: false },
   { id: "bonus", name: "Gebiedsbonussen 👑", color: "#d97706", icon: "👑", isLandmark: false },
   { id: "nature", name: "Natuurfiches 🌲", color: "#0d9488", icon: "💧", isLandmark: false },
-  // De landmarks categorieën (krijgen een mooie houten/bruine tint in plaats van paars)
   { id: "landmarks_cards", name: "Landmark Kaarten 🏛", color: "#854d0e", icon: "📜", isLandmark: true },
   { id: "landmarks_tokens", name: "Landmark Fiches 🏛", color: "#a16207", icon: "🪙", isLandmark: true }
 ];
 
-// Dynamische lijst op basis van de gekozen instelling
 let categories = [];
 
 /* ---------------- LOCAL STORAGE ---------------- */
@@ -63,7 +60,6 @@ function setPlayerCount(count) {
   const currentPlayers = [...state.players];
   if (count > currentPlayers.length) {
     for (let i = currentPlayers.length; i < count; i++) {
-      // Pak de naam uit de vaste lijst, of val terug op Speler X als het er nóg meer worden
       const nextName = defaultNames[i] || `Speler ${i + 1}`;
       currentPlayers.push({ name: nextName });
     }
@@ -348,14 +344,15 @@ function updateMiniScoreboard() {
 }
 
 function renderResult(app) {
-  document.documentElement.style.setProperty('--category-color', '#16a34a');
+  document.documentElement.style.setProperty('--category-color', '#14532d');
 
   const winners = [...state.players].sort((a, b) => calculateTotal(b.name) - calculateTotal(a.name));
 
+  // HERSTELD: Prachtig eindscherm met kroontje en gedetailleerd overzicht per speler
   app.innerHTML = `
     <div class="result-screen core-container">
       <header class="hero-header">
-        <span class="hero-icon">🏆</span>
+        <span class="hero-icon">👑</span>
         <h1>Einduitslag</h1>
         <p class="subtitle">En de winnaar is ${winners[0].name}!</p>
       </header>
@@ -363,10 +360,10 @@ function renderResult(app) {
       <div class="leaderboard-stack">
         ${winners.map((p, index) => `
           <div class="leaderboard-card ${index === 0 ? 'winner' : ''}">
-            <div class="leaderboard-rank">${index + 1}</div>
+            <div class="leaderboard-rank">${index === 0 ? '👑' : index + 1}</div>
             <div class="leaderboard-details">
               <h3>${p.name}</h3>
-              <p>Totaal gescoord</p>
+              <p>${index === 0 ? 'Gefeliciteerd!' : 'Mooie score'}</p>
             </div>
             <div class="leaderboard-score">${calculateTotal(p.name)}<span>pt</span></div>
           </div>
@@ -386,13 +383,13 @@ function renderResult(app) {
             <tbody>
               ${categories.map(c => `
                 <tr style="border-bottom: 1px solid var(--border-color);">
-                  <td style="padding: 8px 4px;">${c.icon} ${c.name.split(" ")[0]}</td>
+                  <td style="padding: 8px 4px;">${c.icon} ${c.name}</td>
                   ${state.players.map(p => `<td style="padding: 8px 4px; text-align: right; font-weight: 500;">${getScore(p.name, c.id)}</td>`).join("")}
                 </tr>
               `).join("")}
-              <tr style="font-weight: bold; background: var(--bg-main);">
+              <tr style="font-weight: bold; background: var(--bg-main); border-top: 2px solid var(--border-color);">
                 <td style="padding: 10px 4px;">Totaal</td>
-                ${state.players.map(p => `<td style="padding: 10px 4px; text-align: right; color: var(--primary-color);">${calculateTotal(p.name)}</td>`).join("")}
+                ${state.players.map(p => `<td style="padding: 10px 4px; text-align: right; color: var(--category-color);">${calculateTotal(p.name)}</td>`).join("")}
               </tr>
             </tbody>
           </table>
@@ -400,7 +397,7 @@ function renderResult(app) {
       </div>
 
       <div style="margin-top: 24px; display: flex; flex-direction: column; gap: 12px;">
-        <button class="btn-primary" onclick="restartWithSamePlayers()">
+        <button class="btn-primary" onclick="restartWithSamePlayers()" style="background: var(--category-color); box-shadow: none;">
           Speel nogmaals 🔄
         </button>
         <button class="btn-select" onclick="resetGame()" style="width: 100%; padding: 16px; border-radius: 12px;">
@@ -412,7 +409,6 @@ function renderResult(app) {
 }
 
 function renderRulesScreen(app) {
-  // Prachtig diep Cascadia bosgroen voor het regelscherm
   document.documentElement.style.setProperty('--category-color', '#14532d');
 
   app.innerHTML = `
@@ -457,7 +453,7 @@ function renderRulesScreen(app) {
         <div class="card">
           <label class="section-label">🏛 Landmarks Uitbreiding</label>
           <p style="margin: 6px 0 12px 0; line-height: 1.4; font-size: 14px;">
-            <strong>Plaatsen:</strong> Zodra je een leefgebied van <strong>≥ 5 tegels</strong> groot maakt, mag je direct (vrijwillig) een landmark-fiche van dat type pakken en op de laatst gelegde tegel zetten. Er mag daarna <strong>geen dier</strong> meer op!
+            <strong>Plaatsen:</strong> Zodra je een leefgebied van <strong>≥ 5 tegels</strong> groot maakt, mag je direct (vrijwillig) een landmark-fiche van dat type pakken und op de laatst gelegde tegel zetten. Er mag daarna <strong>geen dier</strong> meer op!
           </p>
           <p style="margin: 12px 0 0 0; line-height: 1.4; font-size: 14px;">
             <strong>Puntentelling:</strong> Tel de punten van je fysieke landmark-fiches én de behaalde bonuspunten van de landmark-kaarten bij elkaar op.
