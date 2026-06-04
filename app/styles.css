@@ -485,22 +485,6 @@ button {
 .rules-body ul { padding-left: 20px; }
 .rules-body li { margin-bottom: 4px; }
 
-.btn-reset-danger {
-  background: #fee2e2;
-  border: 1px solid #fca5a5;
-  width: 44px;
-  height: 44px;
-  border-radius: 50%;
-  font-size: 16px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.btn-reset-danger:active {
-  transform: scale(0.9);
-  background: #fca5a5;
-}
 
 /* Zwevende tandwiel/info knop op het setup scherm */
 .btn-info-floating {
