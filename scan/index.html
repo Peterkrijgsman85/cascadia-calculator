@@ -1,0 +1,273 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>Cascadia Vision Pro</title>
+    
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    
+    <link rel="apple-touch-icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect width='100%25' height='100%25' fill='%23111827' rx='20'/%3E%3Ccircle cx='50' cy='50' r='25' fill='none' stroke='%2310b981' stroke-width='6'/%3E%3Cpath d='M35 50h30M50 35v30' stroke='%2310b981' stroke-width='4'/%3E%3C/svg%3E">
+
+    <style>
+        :root {
+            --bg-dark: #0f172a;
+            --panel-bg: #1e293b;
+            --accent: #10b981;
+            --text: #f8fafc;
+        }
+
+        body {
+            font-family: system-ui, -apple-system, sans-serif;
+            background-color: var(--bg-dark);
+            color: var(--text);
+            margin: 0;
+            padding: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+
+        header {
+            text-align: center;
+            padding: 15px;
+            width: 100%;
+            background: var(--panel-bg);
+            box-sizing: border-box;
+            border-bottom: 1px solid #334155;
+        }
+
+        header h1 { margin: 0; font-size: 1.4rem; color: var(--accent); font-weight: 800; letter-spacing: 0.05em; }
+        header p { margin: 5px 0 0 0; font-size: 0.8rem; color: #94a3b8; }
+
+        /* De Camera & Scanner Container */
+        .viewport-container {
+            position: relative;
+            width: 100%;
+            max-width: 500px;
+            aspect-ratio: 4 / 3;
+            background: #000;
+            overflow: hidden;
+            border-bottom: 2px solid #334155;
+        }
+
+        #webcam {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        /* De Sci-Fi Scanning Overlay (HUD) */
+        .hud-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            box-sizing: border-box;
+            border: 20px solid rgba(15, 23, 42, 0.6);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .hud-target {
+            width: 70%;
+            height: 70%;
+            border: 2px dashed var(--accent);
+            border-radius: 16px;
+            position: relative;
+            box-shadow: 0 0 20px rgba(16, 185, 129, 0.2);
+        }
+
+        /* Lasereffect */
+        .hud-target::after {
+            content: '';
+            position: absolute;
+            width: 100%;
+            height: 3px;
+            background: linear-gradient(to right, transparent, var(--accent), transparent);
+            top: 0;
+            animation: laser 3s infinite linear;
+            box-shadow: 0 0 10px var(--accent);
+        }
+
+        @keyframes laser {
+            0% { top: 0%; }
+            50% { top: 100%; }
+            100% { top: 0%; }
+        }
+
+        /* Controls Panel */
+        .controls {
+            padding: 20px;
+            width: 100%;
+            max-width: 500px;
+            box-sizing: border-box;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .btn {
+            background: var(--accent);
+            color: #000;
+            border: none;
+            padding: 15px;
+            border-radius: 12px;
+            font-weight: 700;
+            font-size: 1rem;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            transition: opacity 0.2s;
+        }
+        .btn:active { opacity: 0.8; }
+        .btn-secondary { background: #475569; color: white; }
+
+        /* Resultaten loggingspaneel */
+        .results-panel {
+            margin: 0 20px 20px 20px;
+            padding: 15px;
+            background: var(--panel-bg);
+            border-radius: 12px;
+            width: calc(100% - 40px);
+            max-width: 460px;
+            box-sizing: border-box;
+            border: 1px solid #334155;
+        }
+
+        .results-panel h3 { margin-top: 0; font-size: 0.9rem; text-transform: uppercase; color: #94a3b8; letter-spacing: 0.05em; }
+        
+        #logWindow {
+            font-family: monospace;
+            font-size: 0.85rem;
+            color: #34d399;
+            max-height: 150px;
+            overflow-y: auto;
+            white-space: pre-wrap;
+        }
+
+        /* Onzichtbare canvas voor OpenCV beeldverwerking achter de schermen */
+        #hiddenCanvas { display: none; }
+
+        @media (min-width: 769px) {
+            body { padding-top: 30px; }
+            .viewport-container { border-radius: 16px; border: 2px solid #334155; }
+        }
+    </style>
+</head>
+<body>
+
+<header>
+    <h1>CASCADIA VISION PRO</h1>
+    <p>Client-Side OCR &amp; Computer Vision Sandbox</p>
+</header>
+
+<div class="viewport-container">
+    <video id="webcam" autoplay playsinline></video>
+    
+    <div class="hud-overlay">
+        <div class="hud-target"></div>
+    </div>
+</div>
+
+<div class="controls">
+    <button class="btn" onclick="captureAndProcess()">
+        📸 SCAN LANDSCHAP
+    </button>
+    <button class="btn btn-secondary" onclick="simulateAIAnalysis()">
+        🧬 SIMULEER OPENCV / AI DETECTIE
+    </button>
+</div>
+
+<div class="results-panel">
+    <h3>Console / Vision Output</h3>
+    <div id="logWindow">Systeem stand-by. Start de camera om te beginnen...</div>
+</div>
+
+<canvas id="hiddenCanvas"></canvas>
+
+<script>
+    const video = document.getElementById('webcam');
+    const canvas = document.getElementById('hiddenCanvas');
+    const logWindow = document.getElementById('logWindow');
+
+    // 1. Automatisch de achtercamera (environment) starten bij het laden van de app
+    async function startCamera() {
+        log("Camera initialiseren...");
+        try {
+            const stream = await navigator.mediaDevices.getUserMedia({
+                video: {
+                    facingMode: 'environment', // Dwingt de camera aan de achterzijde af
+                    width: { ideal: 1280 },
+                    height: { ideal: 720 }
+                },
+                audio: false
+            });
+            video.srcObject = stream;
+            log("✅ Live camera feed actief (Achtercamera).");
+        } catch (err) {
+            log(`❌ Camera fout: ${err.message}\n(Zit je op HTTPS of localhost? Zo niet, dan blokkeert de browser de camera).`);
+            console.error(err);
+        }
+    }
+
+    // 2. Foto 'bevriezen' en naar canvas schrijven (klaar voor OpenCV.js / TensorFlow.js)
+    function captureAndProcess() {
+        if (!video.srcObject) {
+            log("❌ Scan mislukt: Camera is niet actief.");
+            return;
+        }
+
+        log("📸 Frame gecaptured! Analyseren via HTML5 Canvas...");
+        
+        const ctx = canvas.getContext('2d');
+        canvas.width = video.videoWidth;
+        canvas.height = video.videoHeight;
+        
+        // Teken het huidige videoframe op de verborgen canvas
+        ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+        
+        log(`Status: Afbeelding opgeslagen in memory (${canvas.width}x${canvas.height}px).`);
+        log(`Volgende stap in architectuur: OpenCV.js contour- en kleurmatrix analyse aanroepen.`);
+    }
+
+    // 3. Een simulatie van wat OpenCV/TensorFlow straks teruggeeft aan data
+    function simulateAIAnalysis() {
+        log("🤖 AI / OpenCV Simulatie gestart...");
+        log("Stap 1: OpenCV.js strijkt het hex-grid recht (Perspectief Correctie)... OK");
+        log("Stap 2: Kleursegmentatie uitvoeren op RGB-kanalen...");
+        
+        setTimeout(() => {
+            log("🟩 Gevonden: 14x Bos-pixels (Grootste gebied: 6)");
+            log("🟨 Gevonden: 8x Prairie-pixels (Grootste gebied: 4)");
+            log("🟦 Gevonden: 11x Rivier-pixels (Grootste gebied: 5)");
+        }, 600);
+
+        setTimeout(() => {
+            log("Stap 3: TensorFlow.js objectdetectie model (YOLOv8-nano) laden...");
+            log("🐻 Gedetecteerd fiches: 3x Beer (Patroon: 1x Groep van 2, 1x Groep van 1)");
+            log("🐟 Gedetecteerd fiches: 5x Zalm (Patroon: Run van 4)");
+            log("🏆 Simulatie voltooid. Data is klaar om naar de rekenmachine te sturen!");
+        }, 1400);
+    }
+
+    // Helper functie om tekst in de app-console te spugen
+    function log(text) {
+        logWindow.innerText += `\n[${new Date().toLocaleTimeString()}] ${text}`;
+        logWindow.scrollTop = logWindow.scrollHeight; // Auto-scroll naar beneden
+    }
+
+    // Start de camera direct bij openen
+    window.addEventListener('DOMContentLoaded', startCamera);
+</script>
+
+</body>
+</html>
