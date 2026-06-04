@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>Cascadia Vision Pro - HSV Color Engine</title>
+    <title>Cascadia Vision Pro - Live Overlay</title>
     
     <style>
         :root {
@@ -11,13 +11,7 @@
             --panel-bg: #1e293b;
             --accent: #10b981;
             --text: #f8fafc;
-            
-            /* Match met de officiële Cascadia fichekleuren */
-            --bear: #854d0e;    /* Bruin */
-            --salmon: #e11d48;  /* Roze/Rood */
-            --hawk: #38bdf8;    /* Blauw/Grijs */
-            --elk: #65a30d;     /* Hout/Groen */
-            --fox: #ea580c;     /* Oranje */
+            --bear: #b45309; --salmon: #e11d48; --hawk: #06b6d4; --elk: #84cc16; --fox: #f97316;
         }
 
         body {
@@ -26,62 +20,54 @@
             margin: 0; padding: 0; display: flex; flex-direction: column; align-items: center; min-height: 100vh;
         }
 
-        header { text-align: center; padding: 15px; width: 100%; background: var(--panel-bg); box-sizing: border-box; border-bottom: 1px solid #334155; }
-        header h1 { margin: 0; font-size: 1.3rem; color: var(--accent); font-weight: 800; }
+        header { text-align: center; padding: 15px; width: 100%; background: var(--panel-bg); border-bottom: 1px solid #334155; box-sizing: border-box; }
+        header h1 { margin: 0; font-size: 1.2rem; color: var(--accent); font-weight: 800; }
 
         .container { width: 100%; max-width: 500px; box-sizing: border-box; padding: 15px; }
         .screen { display: none; width: 100%; }
         .screen.active { display: block; }
 
-        /* Card Selector Grid */
-        .card-selector-grid { display: flex; flex-direction: column; gap: 10px; margin: 15px 0; }
-        .animal-row { background: var(--panel-bg); padding: 12px; border-radius: 12px; border: 1px solid #334155; }
-        .animal-label { font-weight: 700; font-size: 0.95rem; margin-bottom: 8px; display: flex; align-items: center; gap: 8px; }
+        /* Card Selector */
+        .card-selector-grid { display: flex; flex-direction: column; gap: 8px; margin: 15px 0; }
+        .animal-row { background: var(--panel-bg); padding: 10px; border-radius: 12px; border: 1px solid #334155; }
+        .animal-label { font-weight: 700; font-size: 0.9rem; margin-bottom: 6px; }
         .btn-group { display: flex; gap: 6px; }
         .btn-check { flex: 1; background: #334155; color: #94a3b8; border: 2px solid transparent; padding: 8px; border-radius: 8px; cursor: pointer; font-weight: 700; }
         .btn-check.active { background: var(--accent); color: #000; border-color: #fff; }
 
-        /* Camera Viewport */
-        .viewport-container { position: relative; width: 100%; aspect-ratio: 4 / 3; background: #000; overflow: hidden; border-radius: 12px; border: 2px solid #334155; }
+        /* Camera & Monitor */
+        .viewport-container { position: relative; width: 100%; aspect-ratio: 4 / 3; background: #000; border-radius: 12px; border: 2px solid #334155; overflow: hidden; }
         #webcam { width: 100%; height: 100%; object-fit: cover; }
-        .hud-overlay { position: absolute; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; box-sizing: border-box; border: 15px solid rgba(15, 23, 42, 0.6); display: flex; align-items: center; justify-content: center; }
-        .hud-target { width: 75%; height: 75%; border: 2px dashed var(--accent); border-radius: 12px; }
-
+        
         .btn { background: var(--accent); color: #000; border: none; padding: 15px; border-radius: 12px; font-weight: 700; font-size: 1rem; width: 100%; cursor: pointer; margin-bottom: 10px; }
         .btn-secondary { background: #475569; color: white; }
 
-        /* Debug & Telemetrie */
-        .results-panel { padding: 12px; background: #020617; border-radius: 12px; border: 1px solid #334155; margin-top: 15px; }
-        #logWindow { font-family: monospace; font-size: 0.75rem; color: #34d399; max-height: 80px; overflow-y: auto; white-space: pre-wrap; }
+        .results-panel { padding: 12px; background: #020617; border-radius: 12px; border: 1px solid #334155; margin: 15px 0; }
+        #logWindow { font-family: monospace; font-size: 0.75rem; color: #34d399; max-height: 60px; overflow-y: auto; }
+        
         #opencvStatus { background: #1e293b; color: #94a3b8; padding: 8px; border-radius: 6px; font-size: 0.75rem; text-align: center; margin-bottom: 10px; }
         
-        .debug-section { margin-top: 15px; background: #111827; padding: 12px; border-radius: 12px; border: 1px solid #334155; }
-        .debug-nav { display: flex; gap: 4px; margin-bottom: 8px; overflow-x: auto; padding-bottom: 4px; }
-        .btn-mini { background: #334155; color: #fff; border: none; padding: 6px 10px; border-radius: 6px; font-size: 0.7rem; cursor: pointer; font-weight: 600; white-space: nowrap; }
-        .btn-mini.active { background: var(--accent); color: #000; }
-        #debugCanvas { width: 100%; aspect-ratio: 4 / 3; background: #222; border-radius: 8px; }
+        /* Het live target scherm */
+        #debugCanvas { width: 100%; aspect-ratio: 4 / 3; background: #222; border-radius: 12px; border: 2px solid var(--accent); }
 
         /* Scoreboard */
         .score-card { background: var(--panel-bg); border-radius: 16px; padding: 20px; border: 1px solid #334155; margin-bottom: 20px; }
         .score-row { display: flex; justify-content: space-between; align-items: center; padding: 12px 0; border-bottom: 1px solid #334155; }
-        .score-row:last-child { border-bottom: none; }
-        .score-animal { font-weight: 700; display: flex; align-items: center; gap: 10px; }
-        .score-badge { background: #0f172a; padding: 6px 12px; border-radius: 8px; font-weight: 800; font-size: 1.1rem; color: var(--accent); }
-        .score-count { font-size: 0.8rem; color: #94a3b8; font-weight: normal; margin-left: 5px; }
-        .total-box { background: #0f172a; border: 2px solid var(--accent); padding: 15px; border-radius: 12px; text-align: center; margin-top: 15px; }
+        .score-badge { background: #0f172a; padding: 6px 12px; border-radius: 8px; font-weight: 800; color: var(--accent); }
+        .total-box { background: #0f172a; border: 2px solid var(--accent); padding: 15px; border-radius: 12px; text-align: center; }
         .total-box div { font-size: 2.2rem; font-weight: 900; color: var(--accent); }
     </style>
 </head>
 <body>
 
 <header>
-    <h1>CASCADIA VISION PRO</h1>
+    <h1>CASCADIA REAL-VISION OVERLAY</h1>
 </header>
 
 <div class="container">
 
     <div id="setupScreen" class="screen active">
-        <h2 style="margin-top:0; font-size:1.1rem;">⚙️ 1. Selecteer de actieve scorekaarten</h2>
+        <h2 style="margin-top:0; font-size:1.1rem;">⚙️ 1. Kies actieve scorekaarten</h2>
         <div class="card-selector-grid">
             <div class="animal-row" style="border-left: 4px solid var(--bear);"><div class="animal-label">🐻 Beren</div><div class="btn-group"><button class="btn-check active" onclick="selectCard('bear','A',this)">A</button><button class="btn-check" onclick="selectCard('bear','B',this)">B</button></div></div>
             <div class="animal-row" style="border-left: 4px solid var(--salmon);"><div class="animal-label">🐟 Zalmen</div><div class="btn-group"><button class="btn-check active" onclick="selectCard('salmon','A',this)">A</button><button class="btn-check" onclick="selectCard('salmon','B',this)">B</button></div></div>
@@ -89,47 +75,36 @@
             <div class="animal-row" style="border-left: 4px solid var(--elk);"><div class="animal-label">🦌 Wapiti's</div><div class="btn-group"><button class="btn-check active" onclick="selectCard('elk','A',this)">A</button><button class="btn-check" onclick="selectCard('elk','B',this)">B</button></div></div>
             <div class="animal-row" style="border-left: 4px solid var(--fox);"><div class="animal-label">🦊 Vossen</div><div class="btn-group"><button class="btn-check active" onclick="selectCard('fox','A',this)">A</button><button class="btn-check" onclick="selectCard('fox','B',this)">B</button></div></div>
         </div>
-        <button class="btn" onclick="goToScanner()">OPEN LIVE HSV SCANNER 📸</button>
+        <button class="btn" onclick="goToScanner()">OPEN OVERLAY SCANNER 📸</button>
     </div>
 
     <div id="scannerScreen" class="screen">
-        <div id="opencvStatus">⏳ OpenCV.js: Laden van Matrix Algoritmes...</div>
+        <div id="opencvStatus">⏳ OpenCV.js: Laden van visuele motor...</div>
 
-        <div class="viewport-container">
+        <div class="viewport-container" style="display:none;">
             <video id="webcam" autoplay playsinline></video>
-            <div class="hud-overlay"><div class="hud-target"></div></div>
         </div>
 
-        <button class="btn" onclick="captureAndProcess()">📸 SCAN EN BEREKEN LANDSCHAP</button>
-        <button class="btn btn-secondary" onclick="goToSetup()">⬅️ KAARTEN WIJZIGEN</button>
+        <canvas id="debugCanvas"></canvas>
 
         <div class="results-panel">
-            <h3>Vision Live Telemetrie</h3>
+            <h3>Vision Analyse Log</h3>
             <div id="logWindow">Systeem stand-by...</div>
         </div>
 
-        <div class="debug-section">
-            <div style="font-size: 0.8rem; color: #94a3b8; margin-bottom: 6px; text-transform: uppercase;">👁️ Live Monitor Kanaal Selectie:</div>
-            <div class="debug-nav">
-                <button class="btn-mini active" onclick="switchDebugView('bear', this)">🐻 Beer (Bruin)</button>
-                <button class="btn-mini" onclick="switchDebugView('salmon', this)">🐟 Zalm (Rood)</button>
-                <button class="btn-mini" onclick="switchDebugView('hawk', this)">🦅 Havik (Blauw)</button>
-                <button class="btn-mini" onclick="switchDebugView('elk', this)">🦌 Wapiti (Groen)</button>
-                <button class="btn-mini" onclick="switchDebugView('fox', this)">🦊 Vos (Oranje)</button>
-            </div>
-            <canvas id="debugCanvas"></canvas>
-        </div>
+        <button class="btn" onclick="freezeAndCalculate()">🏆 BEREKEN PUNTELEMENTEN</button>
+        <button class="btn btn-secondary" onclick="goToSetup()">⬅️ KAARTEN WIJZIGEN</button>
     </div>
 
     <div id="resultScreen" class="screen">
-        <h2 style="margin-top:0; text-align:center;">🏆 HSV Scantotaal</h2>
+        <h2 style="margin-top:0; text-align:center;">🏆 Gescande Eindstand</h2>
         <div class="score-card">
-            <div class="score-row"><div class="score-animal" style="color: var(--bear);">🐻 Beren <span id="cntBear" class="score-count"></span></div><div id="scoreBear" class="score-badge">0</div></div>
-            <div class="score-row"><div class="score-animal" style="color: var(--salmon);">🐟 Zalmen <span id="cntSalmon" class="score-count"></span></div><div id="scoreSalmon" class="score-badge">0</div></div>
-            <div class="score-row"><div class="score-animal" style="color: var(--hawk);">🦅 Haviken <span id="cntHawk" class="score-count"></span></div><div id="scoreHawk" class="score-badge">0</div></div>
-            <div class="score-row"><div class="score-animal" style="color: var(--elk);">🦌 Wapiti's <span id="cntElk" class="score-count"></span></div><div id="scoreElk" class="score-badge">0</div></div>
-            <div class="score-row"><div class="score-animal" style="color: var(--fox);">🦊 Vossen <span id="cntFox" class="score-count"></span></div><div id="scoreFox" class="score-badge">0</div></div>
-            <div class="total-box"><h4>Totale Score op Tafel</h4><div id="scoreTotal">0</div></div>
+            <div class="score-row"><div>🐻 Beren Score</div><div id="scoreBear" class="score-badge">0</div></div>
+            <div class="score-row"><div>🐟 Zalmen Score</div><div id="scoreSalmon" class="score-badge">0</div></div>
+            <div class="score-row"><div>🦅 Haviken Score</div><div id="scoreHawk" class="score-badge">0</div></div>
+            <div class="score-row"><div>🦌 Wapiti's Score</div><div id="scoreElk" class="score-badge">0</div></div>
+            <div class="score-row"><div>🦊 Vossen Score</div><div id="scoreFox" class="score-badge">0</div></div>
+            <div class="total-box"><h4>Totaal Wildlife</h4><div id="scoreTotal">0</div></div>
         </div>
         <button class="btn" onclick="goToScanner()">🔄 SCAN VOLGENDE SPELER</button>
     </div>
@@ -142,19 +117,19 @@
 
 <script>
     const activeConfig = { bear: 'A', salmon: 'A', hawk: 'A', elk: 'A', fox: 'A' };
-    let currentDebugView = 'bear'; // Standaard focus op beren
     let openCvLoaded = false;
     let streamRef = null;
+    let isScanning = false;
+    let lastCalculatedCounts = { bear: 0, salmon: 0, hawk: 0, elk: 0, fox: 0 };
     const logWindow = document.getElementById('logWindow');
 
-    // HSV Ranges kalibratie (H: 0-180, S: 0-255, V: 0-255)
-    // Dit zijn de wiskundige definities van de Cascadia fiche-kleuren onder normaal daglicht
+    // Verscherpte HSV marges om ruis en houten tafels agressief te onderdrukken
     const hsvRanges = {
-        bear:   { low: [0, 40, 40],    high: [20, 255, 150] },    // Bruintinten
-        salmon: { low: [165, 70, 70],  high: [180, 255, 255] },  // Fel roze/rood
-        hawk:   { low: [95, 40, 50],   high: [125, 255, 255] },  // Blauw/grijs
-        elk:    { low: [35, 50, 40],   high: [85, 255, 255] },   // Houtskool-groen
-        fox:    { low: [21, 100, 100], high: [34, 255, 255] }    // Helder oranje
+        bear:   { low: [5, 60, 50],     high: [18, 255, 130],   color: [14, 77, 133, 255] },   // Strikt donkerbruin
+        salmon: { low: [165, 90, 90],   high: [180, 255, 255],  color: [72, 29, 225, 255] },   // Strikt roze/rood
+        hawk:   { low: [100, 60, 60],   high: [125, 255, 255],  color: [248, 189, 56, 255] },  // Strikt blauw
+        elk:    { low: [40, 70, 50],    high: [80, 255, 255],   color: [13, 163, 101, 255] },  // Strikt groen
+        fox:    { low: [20, 120, 110],  high: [32, 255, 255],   color: [12, 88, 234, 255] }    // Strikt verzadigd oranje
     };
 
     function selectCard(animal, letter, element) {
@@ -162,14 +137,6 @@
         const buttons = element.parentElement.querySelectorAll('.btn-check');
         buttons.forEach(b => b.classList.remove('active'));
         element.classList.add('active');
-    }
-
-    function switchDebugView(animal, element) {
-        currentDebugView = animal;
-        const buttons = element.parentElement.querySelectorAll('.btn-mini');
-        buttons.forEach(b => b.classList.remove('active'));
-        element.classList.add('active');
-        log(`Live monitor geswitcht naar: ${animal.toUpperCase()}`);
     }
 
     function goToScanner() {
@@ -184,167 +151,137 @@
             streamRef = await navigator.mediaDevices.getUserMedia({
                 video: { facingMode: 'environment', width: { ideal: 640 }, height: { ideal: 480 } }, audio: false
             });
-            document.getElementById('webcam').srcObject = streamRef;
-            log("Camera gestart.");
-        } catch (err) { log("Cameratoegang geweigerd."); }
+            const video = document.getElementById('webcam');
+            video.srcObject = streamRef;
+            isScanning = true;
+            log("Camera actief. Starten van live video-pipeline...");
+            requestAnimationFrame(processVideoFrame);
+        } catch (err) { log("Camerafout. Check HTTPS."); }
     }
 
-    function stopCamera() { if (streamRef) { streamRef.getTracks().forEach(t => t.stop()); } }
+    function stopCamera() {
+        isScanning = false;
+        if (streamRef) { streamRef.getTracks().forEach(t => t.stop()); }
+    }
 
     function openCvReady() {
         openCvLoaded = true;
         const status = document.getElementById('opencvStatus');
-        status.innerHTML = "🟢 HSV Engine Online - Klaar voor kleur-analyse!";
+        status.innerHTML = "🟢 Matrix Engine Gekoppeld!";
         status.style.color = "#34d399";
     }
 
     // ========================================================
-    // DE KERN: HSV PIPELINE & CONTOUR FILTERING PER DIERSOORT
+    // DE LIVE COLOR OVERLAY PIPELINE (DRAAIT LIVE OP JE SCHERM)
     // ========================================================
-    function captureAndProcess() {
-        if (!openCvLoaded) return;
-        log("📸 Frame analyseren via HSV matrices...");
+    function processVideoFrame() {
+        if (!isScanning || !openCvLoaded) return;
 
         const video = document.getElementById('webcam');
         const canvas = document.getElementById('hiddenCanvas');
         const ctx = canvas.getContext('2d');
-        
+
+        if (video.videoWidth === 0) {
+            requestAnimationFrame(processVideoFrame);
+            return;
+        }
+
         canvas.width = video.videoWidth;
         canvas.height = video.videoHeight;
         ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
 
-        // Laad frame in OpenCV
+        // Matrix inladen
         let src = cv.imread('hiddenCanvas');
         let rgb = new cv.Mat();
         let hsv = new cv.Mat();
         
-        // Conversie van RGBA -> RGB -> HSV
         cv.cvtColor(src, rgb, cv.COLOR_RGBA2RGB);
         cv.cvtColor(rgb, hsv, cv.COLOR_RGB2HSV);
 
-        // Object dat de getelde fiches per diersoort gaat bijhouden
-        let finalCounts = { bear: 0, salmon: 0, hawk: 0, elk: 0, fox: 0 };
-        let debugMaskToShow = null;
+        // Reset de realtime tellers voor deze frame-verversing
+        let currentCounts = { bear: 0, salmon: 0, hawk: 0, elk: 0, fox: 0 };
+        let M = cv.Mat.ones(3, 3, cv.CV_8U);
 
-        // Loop door alle 5 de diersoorten en voer de kleuranalyse uit
+        // Scan parallel alle 5 de kleurenlagen
         for (let animal in hsvRanges) {
             let mask = new cv.Mat();
             let lowBound = cv.matFromArray(1, 3, cv.CV_8UC1, hsvRanges[animal].low);
             let highBound = cv.matFromArray(1, 3, cv.CV_8UC1, hsvRanges[animal].high);
             
-            // Isoleer alleen de pixels van DIT specifieke dier
             cv.inRange(hsv, lowBound, highBound, mask);
-            
-            // Ruis wegpoetsen met morphologische operaties (sluiten van gaten in fiches)
-            let M = cv.Mat.ones(3, 3, cv.CV_8U);
             cv.morphologyEx(mask, mask, cv.MORPH_CLOSE, M);
 
-            // Sla de mask op die de gebruiker live wil inspecteren in het debug-scherm
-            if (animal === currentDebugView) {
-                debugMaskToShow = mask.clone();
-            }
-
-            // Vind de contouren van de fiches in deze kleurlaag
             let contours = new cv.MatVector();
             let hierarchy = new cv.Mat();
             cv.findContours(mask, contours, hierarchy, cv.RETR_EXTERNAL, cv.CHAIN_APPROX_SIMPLE);
 
-            // Filter op grootte (zorg dat pluisjes of hele tafelbladen niet meetellen)
-            let count = 0;
             for (let i = 0; i < contours.size(); ++i) {
                 let cnt = contours.get(i);
                 let area = cv.contourArea(cnt);
-                if (area > 250 && area < 35000) {
-                    count++;
+                
+                // Strikte omtrek-controle: negeer tafelbladen of micro-ruis pixels
+                if (area > 600 && area < 18000) {
+                    currentCounts[animal]++;
+                    
+                    // TEKEN EEN LIVE VIERKANT OP HET KLEURENBEELD
+                    let rect = cv.boundingRect(cnt);
+                    let p1 = new cv.Point(rect.x, rect.y);
+                    let p2 = new cv.Point(rect.x + rect.width, rect.y + rect.height);
+                    let sColor = new cv.Scalar(hsvRanges[animal].color[0], hsvRanges[animal].color[1], hsvRanges[animal].color[2], 255);
+                    
+                    cv.rectangle(src, p1, p2, sColor, 3);
+                    cv.putText(src, animal.toUpperCase(), new cv.Point(rect.x, rect.y - 6), cv.FONT_HERSHEY_SIMPLEX, 0.5, sColor, 2);
                 }
             }
 
-            finalCounts[animal] = count;
-
-            // Matrix opruimen
-            mask.delete(); lowBound.delete(); highBound.delete(); M.delete(); contours.delete(); hierarchy.delete();
+            mask.delete(); lowBound.delete(); highBound.delete(); contours.delete(); hierarchy.delete();
         }
 
-        // Toon het geselecteerde filtermasker in de monitor onder de camera
-        if (debugMaskToShow) {
-            cv.imshow('debugCanvas', debugMaskToShow);
-            debugMaskToShow.delete();
+        // Output de bewerkte KLEURENMATRIX direct naar de zoeker op je scherm
+        cv.imshow('debugCanvas', src);
+
+        // Bewaar de laatste meting voor als de gebruiker op de knop drukt
+        lastCalculatedCounts = currentCounts;
+
+        // Geheugen vrijmaken
+        src.delete(); rgb.delete(); hsv.delete(); M.delete();
+
+        // Vuur de volgende frame-analyse af (realtime feed)
+        if (isScanning) {
+            requestAnimationFrame(processVideoFrame);
         }
-
-        // Ruim hoofd-matrices op tegen geheugenlekken
-        src.delete(); rgb.delete(); hsv.delete();
-
-        log(`Analyse klaar. Gevonden: 🐻${finalCounts.bear} 🐟${finalCounts.salmon} 🦅${finalCounts.hawk} 🦌${finalCounts.elk} 🦊${finalCounts.fox}`);
-
-        // Verwerk de echte counts naar het scorebord
-        setTimeout(() => {
-            processHsvScores(finalCounts);
-        }, 400);
     }
 
-    // ========================================================
-    // REKENLOGICA OP BASIS VAN KAARTEN EN REAL DETECTIE
-    // ========================================================
-    function processHsvScores(counts) {
+    function freezeAndCalculate() {
+        log(`Analyse bevroren! Definitieve telling: 🐻${lastCalculatedCounts.bear} 🐟${lastCalculatedCounts.salmon}`);
+        
         let scores = { bear: 0, salmon: 0, hawk: 0, elk: 0, fox: 0 };
 
-        // 1. Beren Berekening
-        if (activeConfig.bear === 'A') {
-            // Kaart A: Schaal-tabel voor losse beren/paren (bijv: 1=4pt, 2=11pt, 3=19pt)
-            if (counts.bear === 1) scores.bear = 4;
-            else if (counts.bear === 2) scores.bear = 11;
-            else if (counts.bear >= 3) scores.bear = 19;
-        } else {
-            // Kaart B: Grotere groepen beren scoren beter
-            scores.bear = counts.bear * 5; 
+        // Bereken alleen als het object daadwerkelijk fysiek op het scherm gemarkeerd was!
+        if (lastCalculatedCounts.bear > 0) {
+            scores.bear = (activeConfig.bear === 'A') ? (lastCalculatedCounts.bear === 1 ? 4 : 11) : lastCalculatedCounts.bear * 5;
         }
-
-        // 2. Zalmen Berekening
-        if (activeConfig.salmon === 'A') {
-            // Kaart A: Runs (1=2pt, 2=5pt, 3=9pt, 4=12pt)
-            let table = [0, 2, 5, 9, 12, 16, 20];
-            scores.salmon = table[Math.min(counts.salmon, 6)];
-        } else {
-            scores.salmon = counts.salmon * 3;
+        if (lastCalculatedCounts.salmon > 0) {
+            scores.salmon = lastCalculatedCounts.salmon * 3;
         }
+        scores.hawk = lastCalculatedCounts.hawk * 2;
+        scores.elk = lastCalculatedCounts.elk * 2;
+        scores.fox = lastCalculatedCounts.fox * 3;
 
-        // 3. Haviken (Lijnen/Paren)
-        scores.hawk = (activeConfig.hawk === 'A') ? counts.hawk * 3 : counts.hawk * 4;
-
-        // 4. Wapiti's (Kuddes)
-        scores.elk = (activeConfig.elk === 'A') ? counts.elk * 2 : counts.elk * 3;
-
-        // 5. Vossen (Omringende bonus)
-        scores.fox = (activeConfig.fox === 'A') ? counts.fox * 3 : counts.fox * 4;
-
-        // Update DOM tellers en scores
-        document.getElementById('cntBear').innerText = `(${counts.bear} st.)`;
         document.getElementById('scoreBear').innerText = scores.bear;
-
-        document.getElementById('cntSalmon').innerText = `(${counts.salmon} st.)`;
         document.getElementById('scoreSalmon').innerText = scores.salmon;
-
-        document.getElementById('cntHawk').innerText = `(${counts.hawk} st.)`;
         document.getElementById('scoreHawk').innerText = scores.hawk;
-
-        document.getElementById('cntElk').innerText = `(${counts.elk} st.)`;
         document.getElementById('scoreElk').innerText = scores.elk;
-
-        document.getElementById('cntFox').innerText = `(${counts.fox} st.)`;
         document.getElementById('scoreFox').innerText = scores.fox;
+        document.getElementById('scoreTotal').innerText = scores.bear + scores.salmon + scores.hawk + scores.elk + scores.fox;
 
-        let totaal = scores.bear + scores.salmon + scores.hawk + scores.elk + scores.fox;
-        document.getElementById('scoreTotal').innerText = totaal;
-
-        // Schermwissel
         stopCamera();
         document.getElementById('scannerScreen').classList.remove('active');
         document.getElementById('resultScreen').classList.add('active');
     }
 
     function log(text) {
-        logWindow.innerText += `\n[${new Date().toLocaleTimeString()}] ${text}`;
-        logWindow.scrollTop = logWindow.scrollHeight;
+        logWindow.innerText = `[${new Date().toLocaleTimeString()}] ${text}`;
     }
 </script>
 
