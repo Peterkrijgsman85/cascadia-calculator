@@ -14,25 +14,25 @@ let state = {
 
 let previousMode = "setup";
 
-// NU VOLLEDIG CORRECT: De echte 5 Cascadia leefgebieden (Rivieren ipv Woestijnen)
+// Volledig gecorrigeerde Cascadia categorieën inclusief dynamische snel-ophoging (quickAdd)
 const allCategories = [
-  { id: "bear", name: "Beren", color: "#b45309", icon: "🐻", isLandmark: false },
-  { id: "elk", name: "Wapiti's", color: "#15803d", icon: "🦌", isLandmark: false },
-  { id: "salmon", name: "Zalmen", color: "#e11d48", icon: "🐟", isLandmark: false },
-  { id: "hawk", name: "Buizerds", color: "#0369a1", icon: "🦅", isLandmark: false },
-  { id: "fox", name: "Vossen", color: "#ea580c", icon: "🦊", isLandmark: false },
+  { id: "bear", name: "Beren", color: "#b45309", icon: "🐻", isLandmark: false, quickAdd: 5 },
+  { id: "elk", name: "Wapiti's", color: "#15803d", icon: "🦌", isLandmark: false, quickAdd: 5 },
+  { id: "salmon", name: "Zalmen", color: "#e11d48", icon: "🐟", isLandmark: false, quickAdd: 5 },
+  { id: "hawk", name: "Buizerds", color: "#0369a1", icon: "🦅", isLandmark: false, quickAdd: 5 },
+  { id: "fox", name: "Vossen", color: "#ea580c", icon: "🦊", isLandmark: false, quickAdd: 5 },
   
-  // De 5 correcte leefgebieden
-  { id: "mountains", name: "Bergen", color: "#475569", icon: "🏔", isLandmark: false },
-  { id: "forests", name: "Bossen", color: "#16a34a", icon: "🌲", isLandmark: false },
-  { id: "prairies", name: "Prairies", color: "#ca8a04", icon: "🌾", isLandmark: false },
-  { id: "swamps", name: "Moerassen", color: "#059669", icon: "🌿", isLandmark: false },
-  { id: "rivers", name: "Rivieren", color: "#0284c7", icon: "💧", isLandmark: false },
+  // De 5 leefgebieden (leefgebiedscores liggen lager, dus quickAdd op +1 gezet)
+  { id: "mountains", name: "Bergen", color: "#475569", icon: "🏔", isLandmark: false, quickAdd: 1 },
+  { id: "forests", name: "Bossen", color: "#16a34a", icon: "🌲", isLandmark: false, quickAdd: 1 },
+  { id: "prairies", name: "Prairies", color: "#ca8a04", icon: "🌾", isLandmark: false, quickAdd: 1 },
+  { id: "swamps", name: "Moerassen", color: "#059669", icon: "🌿", isLandmark: false, quickAdd: 1 },
+  { id: "rivers", name: "Rivieren", color: "#0284c7", icon: "💧", isLandmark: false, quickAdd: 1 },
   
-  { id: "bonus", name: "Gebiedsbonussen", color: "#d97706", icon: "👑", isLandmark: false },
-  { id: "nature", name: "Natuurfiches", color: "#0d9488", icon: "🍃", isLandmark: false },
-  { id: "landmarks_cards", name: "Landmark Kaarten", color: "#854d0e", icon: "📜", isLandmark: true },
-  { id: "landmarks_tokens", name: "Landmark Fiches", color: "#a16207", icon: "🪙", isLandmark: true }
+  // 'bonus' is hier verwijderd omdat deze automatisch op de achtergrond berekend wordt!
+  { id: "nature", name: "Natuurfiches", color: "#0d9488", icon: "🍃", isLandmark: false, quickAdd: 5 },
+  { id: "landmarks_cards", name: "Landmark Kaarten", color: "#854d0e", icon: "📜", isLandmark: true, quickAdd: 5 },
+  { id: "landmarks_tokens", name: "Landmark Fiches", color: "#a16207", icon: "🗿", isLandmark: true, quickAdd: 1 }
 ];
 
 let categories = [];
@@ -123,6 +123,7 @@ function next() {
     saveState();
     render();
   } else {
+    calculateAreaBonuses(); // Automatische berekening triggeren voor de einduitslag
     state.mode = "result";
     saveState();
     render();
@@ -145,6 +146,67 @@ function restartWithSamePlayers() {
   state.mode = "game";
   saveState();
   render();
+}
+
+/* ---------------- AUTOMATIC AREA BONUSES ---------------- */
+function calculateAreaBonuses() {
+  const landIds = ["mountains", "forests", "prairies", "swamps", "rivers"];
+  const isTwoPlayer = state.players.length === 2;
+
+  // Reset eerst alle oude berekende bonussen naar 0
+  state.players.forEach(p => {
+    if (!state.scores[p.name]) state.scores[p.name] = {};
+    state.scores[p.name]['bonus'] = 0;
+  });
+
+  // Bereken de bonus per specifiek leefgebied
+  landIds.forEach(catId => {
+    let list = state.players.map(p => ({
+      name: p.name,
+      score: getScore(p.name, catId)
+    }));
+
+    // Sorteer van hoogste naar laagste gebiedscore
+    list.sort((a, b) => b.score - a.score);
+
+    // Als niemand in dit gebied heeft gescoord, skippen we de bonus
+    if (list.length === 0 || list[0].score === 0) return;
+
+    if (isTwoPlayer) {
+      // 2 Spelers: Alleen de grootste krijgt +2. Bij gelijkspel allebei +1.
+      if (list[0].score === list[1].score) {
+        state.scores[list[0].name]['bonus'] += 1;
+        state.scores[list[1].name]['bonus'] += 1;
+      } else {
+        state.scores[list[0].name]['bonus'] += 2;
+      }
+    } else {
+      // 3+ Spelers: Grootste krijgt +3, tweede krijgt +1.
+      const maxScore = list[0].score;
+      const winners = list.filter(p => p.score === maxScore);
+
+      if (winners.length > 1) {
+        // Gedeelde eerste plaats: tel 1e (+3) en 2e (+1) plek bij elkaar op en deel door aantal winnaars (afronden naar boven)
+        const sharedFirstScore = Math.ceil((3 + 1) / winners.length);
+        winners.forEach(w => {
+          state.scores[w.name]['bonus'] += sharedFirstScore;
+        });
+      } else {
+        // Unieke winnaar krijgt de volle +3
+        state.scores[list[0].name]['bonus'] += 3;
+
+        // Bepaal de tweede plaats (moet wel meer dan 0 punten zijn)
+        const runnerUpScore = list[1].score;
+        if (runnerUpScore > 0) {
+          const runnersUp = list.filter(p => p.score === runnerUpScore);
+          // Gedeelde 2e plaats: (1 punt / aantal spelers) naar boven afgerond blijft altijd 1 punt p.p.
+          runnersUp.forEach(r => {
+            state.scores[r.name]['bonus'] += 1;
+          });
+        }
+      }
+    }
+  });
 }
 
 /* ---------------- CORE SCORING LOGIC ---------------- */
@@ -175,6 +237,8 @@ function calculateTotal(playerName) {
   categories.forEach(c => {
     total += getScore(playerName, c.id);
   });
+  // Tel hier de dynamisch berekende gebiedsbonus bij op
+  total += (state.scores[playerName] ? state.scores[playerName]['bonus'] || 0 : 0);
   return total;
 }
 
@@ -286,6 +350,9 @@ function renderGame(app) {
   const c = categories[state.step];
   document.documentElement.style.setProperty('--category-color', c.color);
 
+  // Bepaal de dynamische stapgrootte op basis van de geselecteerde categorie
+  const quickAmt = c.quickAdd || 5;
+
   app.innerHTML = `
     <div class="game-screen core-container">
       
@@ -308,9 +375,9 @@ function renderGame(app) {
               
               <div class="stepper-control">
                 <button class="btn-step" onclick="adjustScore('${p.name}', '${c.id}', -1)">−</button>
-                <div class="score-display-wrapper" onclick="adjustScore('${p.name}', '${c.id}', 5)">
+                <div class="score-display-wrapper" onclick="adjustScore('${p.name}', '${c.id}', ${quickAmt})">
                   <span class="score-value" id="score-${p.name}-${c.id}">${currentScore}</span>
-                  <span class="tap-hint">+5</span>
+                  <span class="tap-hint">+${quickAmt}</span>
                 </div>
                 <button class="btn-step" onclick="adjustScore('${p.name}', '${c.id}', 1)">+</button>
               </div>
@@ -357,7 +424,15 @@ function updateMiniScoreboard() {
 function renderResult(app) {
   document.documentElement.style.setProperty('--category-color', '#14532d');
 
-  const winners = [...state.players].sort((a, b) => calculateTotal(b.name) - calculateTotal(a.name));
+  // Sorteer op totale score. Bij gelijke stand geldt het aantal natuurfiches (nature) als tie-breaker!
+  const winners = [...state.players].sort((a, b) => {
+    const totalA = calculateTotal(a.name);
+    const totalB = calculateTotal(b.name);
+    if (totalB === totalA) {
+      return getScore(b.name, "nature") - getScore(a.name, "nature");
+    }
+    return totalB - totalA;
+  });
 
   app.innerHTML = `
     <div class="result-screen core-container">
@@ -415,6 +490,12 @@ function renderResult(app) {
                   ${state.players.map(p => `<td style="padding: 8px 4px; text-align: right; font-weight: 500;">${getScore(p.name, c.id)}</td>`).join("")}
                 </tr>
               `).join("")}
+              
+              <tr style="border-bottom: 1px solid var(--border-color); background: #fffbeb;">
+                <td style="padding: 8px 4px; display: flex; align-items: center; gap: 4px;"><span>👑</span> <span style="font-weight: 600; color: #b45309;">Gebiedsbonussen</span></td>
+                ${state.players.map(p => `<td style="padding: 8px 4px; text-align: right; font-weight: 600; color: #b45309;">${state.scores[p.name] ? state.scores[p.name]['bonus'] || 0 : 0}</td>`).join("")}
+              </tr>
+
               <tr style="font-weight: bold; background: var(--bg-main); border-top: 2px solid var(--border-color);">
                 <td style="padding: 12px 4px;">Totaal</td>
                 ${state.players.map(p => `<td style="padding: 12px 4px; text-align: right; color: var(--category-color); font-size: 15px;">${calculateTotal(p.name)}</td>`).join("")}
@@ -472,9 +553,9 @@ function renderRulesScreen(app) {
             <strong>Grootste Gebied:</strong> Elke tegel in je grootste aaneengesloten terreintype = 1 punt.
           </p>
           <p style="margin: 12px 0 0 0; line-height: 1.4; font-size: 14px;">
-            <strong>Gebiedsbonussen:</strong><br>
-            • <em>3-6 spelers:</em> Grootste krijgt +3, tweede krijgt +1.<br>
-            • <em>2 spelers:</em> Alleen grootste krijgt +2.
+            <strong>Gebiedsbonussen (Berekent de app automatisch!):</strong><br>
+            • <em>3-6 spelers:</em> Grootste krijgt +3, tweede krijgt +1. Gedeelde 1e plaats = +2 p.p.<br>
+            • <em>2 spelers:</em> Alleen grootste krijgt +2. Gedeelde 1e plaats = +1 p.p.
           </p>
         </div>
 
