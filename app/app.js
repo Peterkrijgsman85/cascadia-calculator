@@ -1,16 +1,21 @@
 /* ---------------- CONFIGURATION ---------------- */
 
 const categories = [
+  // WILDLIFE
   { id: "fox", name: "Vossen", icon: "🦊", color: "#d97706" },
   { id: "bear", name: "Beren", icon: "🐻", color: "#854d0e" },
   { id: "hawk", name: "Buizerds", icon: "🦅", color: "#4b5320" },
   { id: "elk", name: "Wapiti's", icon: "🦌", color: "#9a3412" },
   { id: "salmon", name: "Zalmen", icon: "🐟", color: "#0369a1" },
-  { id: "mountain", name: "Bergen", icon: "🏔", color: "#64748b" },
-  { id: "forest", name: "Bossen", icon: "🌲", color: "#15803d" },
-  { id: "prairie", name: "Prairie", icon: "🌾", color: "#b45309" },
-  { id: "wetland", name: "Moeras", icon: "💧", color: "#0e7490" },
-  { id: "river", name: "Rivieren", icon: "🌊", color: "#1d4ed8" },
+  // LEAFGEBIEDEN
+  { id: "mountain", name: "Bergen (Tegels + Bonus)", icon: "🏔", color: "#64748b" },
+  { id: "forest", name: "Bossen (Tegels + Bonus)", icon: "🌲", color: "#15803d" },
+  { id: "prairie", name: "Prairie (Tegels + Bonus)", icon: "🌾", color: "#b45309" },
+  { id: "wetland", name: "Moeras (Tegels + Bonus)", icon: "💧", color: "#0e7490" },
+  { id: "river", name: "Rivieren (Tegels + Bonus)", icon: "🌊", color: "#1d4ed8" },
+  // LANDMARKS UITBREIDING
+  { id: "lm_points", name: "Landmarks (Fiches + Kaarten)", icon: "🏛", color: "#7c3aed" },
+  // NATUURFICHES
   { id: "nature_tokens", name: "Natuurfiches", icon: "✨", color: "#0d9488" }
 ];
 
@@ -23,27 +28,32 @@ let state = {
     { name: "Jan" },
     { name: "Piet" }
   ],
-  scores: {}
+  scores: {},
+  showDetails: false
 };
 
 try {
-  const saved = localStorage.getItem("cascadia_state_v3");
+  const saved = localStorage.getItem("cascadia_state_v4");
   if (saved) {
     const parsed = JSON.parse(saved);
-    if (parsed && parsed.players) state = parsed;
+    if (parsed && parsed.players) {
+      state = parsed;
+      state.showDetails = false; // Reset viewstate bij herstart
+    }
   }
 } catch (e) {
   console.error("State herstel mislukt", e);
 }
 
 function save() {
-  localStorage.setItem("cascadia_state_v3", JSON.stringify(state));
+  localStorage.setItem("cascadia_state_v4", JSON.stringify(state));
 }
 
 function resetGame() {
   state.mode = "setup";
   state.step = 0;
   state.scores = {};
+  state.showDetails = false;
   save();
   render();
 }
@@ -64,7 +74,6 @@ function adjustScore(playerName, categoryId, amount) {
   state.scores[k] = Math.max(0, current + amount);
   save();
   
-  // Instant DOM update voor ultra-snelle feedback aan de vingers
   const scoreEl = document.getElementById(`score-${playerName}-${categoryId}`);
   if (scoreEl) scoreEl.textContent = state.scores[k];
   
@@ -131,6 +140,21 @@ function prev() {
   }
 }
 
+function toggleDetails() {
+  state.showDetails = !state.showDetails;
+  render();
+}
+
+/* ---------------- MODAL LOGIC ---------------- */
+
+function openRules() {
+  document.getElementById("rules-modal").classList.add("open");
+}
+
+function closeRules() {
+  document.getElementById("rules-modal").classList.remove("open");
+}
+
 /* ---------------- SWIPE GESTURES ---------------- */
 
 let touchStartX = 0;
@@ -159,6 +183,9 @@ function render() {
   app.ontouchstart = null;
   app.ontouchend = null;
 
+  // Reset container breedte class
+  app.className = "";
+
   if (state.mode === "setup") {
     renderSetup(app);
   } else if (state.mode === "result") {
@@ -176,7 +203,7 @@ function renderSetup(app) {
       <header class="hero-header">
         <span class="hero-icon">🏔</span>
         <h1>Cascadia</h1>
-        <p class="subtitle">Score Calculator</p>
+        <p class="subtitle">Score Companion</p>
       </header>
 
       <div class="card">
@@ -210,14 +237,50 @@ function renderSetup(app) {
       <button class="btn-primary" onclick="startGame()">
         Start Berekening →
       </button>
+      
+      <button class="btn-secondary" onclick="openRules()">
+        ⚙️ Bekijk Spelopzet & Regels
+      </button>
+    </div>
+
+    <div id="rules-modal" class="modal" onclick="if(event.target === this) closeRules()">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h3>Cascadia Spelregels</h3>
+          <button class="btn-close" onclick="closeRules()">×</button>
+        </div>
+        <div class="rules-body">
+          <h4>⚙️ Setup: Tegels & Fiches</h4>
+          <ul>
+            <li><strong>2 spelers:</strong> Verwijder 43 tegels (speel met 42). 2 landmark-fiches p.t.</li>
+            <li><strong>3 spelers:</strong> Verwijder 22 tegels (speel met 63). 3 landmark-fiches p.t.</li>
+            <li><strong>4 spelers:</strong> Gebruik alle 85 basistegels. 4 landmark-fiches p.t.</li>
+            <li><strong>5-6 spelers:</strong> Alle tegels + landmarks uitbreiding. Alle fiches.</li>
+          </ul>
+
+          <h4>🐻 Wildlife & Gebieden</h4>
+          <p><strong>Dieren:</strong> Vul de behaalde punten per diersoort in volgens de actieve scorekaart.</p>
+          <p><strong>Grootste Gebied:</strong> Elke tegel in je grootste aaneengesloten terreintype = 1 punt.</p>
+          <p><strong>Gebiedsbonussen:</strong><br>
+             • <em>3-6 spelers:</em> Grootste krijgt +3, tweede krijgt +1.<br>
+             • <em>2 spelers:</em> Alleen grootste krijgt +2.
+          </p>
+
+          <h4>🏛 Landmarks Uitbreiding</h4>
+          <p><strong>Plaatsen:</strong> Zodra je een leefgebied van <strong>≥ 5 tegels</strong> groot maakt, mag je direct (vrijwillig) een landmark-fiche van dat type pakken en op de laatst gelegde tegel zetten. Er mag daarna <strong>geen dier</strong> meer op!</p>
+          <p><strong>Puntentelling:</strong> Tel de punten van je fysieke landmark-fiches én de behaalde bonuspunten van de landmark-kaarten bij elkaar op.</p>
+
+          <h4>🌲 Natuurfiches & Gelijkspel</h4>
+          <p><strong>Natuurfiches:</strong> Elk ongebruikt natuurfiche aan het einde is <strong>1 punt</strong> waard.</p>
+          <p><strong>Tie-break:</strong> Bij een gelijkspel wint de speler met de meeste natuurfiches. Is het dan nog gelijk? Dan delen de spelers de winst.</p>
+        </div>
+      </div>
     </div>
   `;
 }
 
 function renderGame(app) {
   const c = categories[state.step];
-  
-  // Injecteer de dynamische categoriekleur in de CSS variabele
   document.documentElement.style.setProperty('--category-color', c.color);
 
   app.innerHTML = `
@@ -269,33 +332,71 @@ function renderResult(app) {
   const sorted = Object.entries(t).sort((a, b) => b[1] - a[1]);
   const winner = sorted[0];
 
+  if (state.showDetails) {
+    app.classList.add("wide");
+  }
+
   app.innerHTML = `
-    <div class="result-screen core-container">
+    <div class="result-screen core-container ${state.showDetails ? 'wide' : ''}">
       <header class="hero-header animate-pop">
         <span class="hero-icon">👑</span>
         <h1>${winner[0]} wint!</h1>
         <p class="subtitle">Met een score van ${winner[1]} punten</p>
       </header>
 
-      <div class="card leaderboard">
-        ${sorted.map(([name, score], i) => `
-          <div class="leaderboard-row ${i === 0 ? 'winner-row' : ''}">
-            <div class="rank-and-name">
-              <span class="rank-badge">${i + 1}</span>
-              <span class="player-name">${name}</span>
+      ${!state.showDetails ? `
+        <div class="card leaderboard">
+          ${sorted.map(([name, score], i) => `
+            <div class="leaderboard-row ${i === 0 ? 'winner-row' : ''}">
+              <div class="rank-and-name">
+                <span class="rank-badge">${i + 1}</span>
+                <span class="player-name">${name}</span>
+              </div>
+              <span class="final-score">${score} pts</span>
             </div>
-            <span class="final-score">${score} pts</span>
-          </div>
-        `).join("")}
-      </div>
+          `).join("")}
+        </div>
+      ` : renderMatrixTable()}
 
       <div class="action-buttons">
-        <button class="btn-secondary" onclick="state.mode='game'; state.step=0; render();">
-          Bekijk details
+        <button class="btn-secondary" onclick="toggleDetails()">
+          ${state.showDetails ? 'Verberg details' : '📊 Bekijk score-overzicht (Tabel)'}
         </button>
         <button class="btn-primary" onclick="resetGame()">
           Nieuw Spel
         </button>
+      </div>
+    </div>
+  `;
+}
+
+function renderMatrixTable() {
+  const totals = calculateTotals();
+  
+  return `
+    <div class="card" style="padding: 10px; overflow: hidden;">
+      <label class="section-label">Puntenmatrix</label>
+      <div class="table-wrapper">
+        <table class="matrix-table">
+          <thead>
+            <tr>
+              <th>Onderdeel</th>
+              ${state.players.map(p => `<th>${p.name}</th>`).join("")}
+            </tr>
+          </thead>
+          <tbody>
+            ${categories.map(c => `
+              <tr>
+                <td>${c.icon} ${c.name.split(" (")[0]}</td>
+                ${state.players.map(p => `<td>${getScore(p.name, c.id)}</td>`).join("")}
+              </tr>
+            `).join("")}
+              <tr class="row-total">
+                <td><strong>Totaal</strong></td>
+                ${state.players.map(p => `<td>${totals[p.name]}</td>`).join("")}
+              </tr>
+          </tbody>
+        </table>
       </div>
     </div>
   `;
