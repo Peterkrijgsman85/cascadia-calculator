@@ -1,15 +1,9 @@
-/* =========================
-   CASCADIA SCORE V4
-   Premium UX Edition
-   ========================= */
-
 const categories = [
   { id: "fox", name: "🦊 Vossen" },
   { id: "bear", name: "🐻 Beren" },
   { id: "hawk", name: "🦅 Buizerds" },
   { id: "elk", name: "🦌 Wapiti" },
   { id: "salmon", name: "🐟 Zalmen" },
-
   { id: "mountain", name: "🏔 Bergen" },
   { id: "forest", name: "🌲 Bossen" },
   { id: "prairie", name: "🌾 Prairie" },
@@ -23,18 +17,17 @@ let state;
 
 try {
   state = JSON.parse(localStorage.getItem("cascadia_state"));
-} catch (e) {
+} catch {
   state = null;
 }
 
-if (!state || !Array.isArray(state.players)) {
+if (!state || !state.players) {
   state = {
-    step: -1,
+    mode: "setup",   // setup | game | result
+    step: 0,
     players: [
       { name: "Jan" },
-      { name: "Piet" },
-      { name: "Eva" },
-      { name: "Klaas" }
+      { name: "Piet" }
     ],
     scores: {}
   };
@@ -46,76 +39,36 @@ function save() {
 
 /* ---------------- INIT ---------------- */
 
-window.addEventListener("load", () => {
-  render();
-});
+window.addEventListener("load", () => render());
 
-/* ---------------- UTIL ---------------- */
+/* ---------------- HELPERS ---------------- */
 
-function cat() {
-  return categories[state.step];
+function key(p, c) {
+  return `${p}_${c}`;
 }
 
-function scoreKey(player, catId) {
-  return `${player}_${catId}`;
+function getScore(p, c) {
+  return state.scores[key(p, c)] || 0;
 }
 
-function getScore(player, catId) {
-  return state.scores[scoreKey(player, catId)] || 0;
-}
-
-function setScore(player, catId, value) {
-  state.scores[scoreKey(player, catId)] = parseInt(value) || 0;
-  save();
-  render(false);
-}
-
-function updateName(i, value) {
-  state.players[i].name = value;
+function setScore(p, c, v) {
+  state.scores[key(p, c)] = parseInt(v) || 0;
   save();
 }
 
-/* ---------------- HAPTIC ---------------- */
-
-function vibrate() {
-  if (navigator.vibrate) navigator.vibrate(10);
-}
-
-/* ---------------- SWIPE ---------------- */
-
-let startX = 0;
-
-function setupSwipe() {
-  const el = document.getElementById("app");
-  if (!el) return;
-
-  el.ontouchstart = (e) => startX = e.touches[0].clientX;
-
-  el.ontouchend = (e) => {
-    const diff = e.changedTouches[0].clientX - startX;
-
-    if (Math.abs(diff) < 60) return;
-
-    if (diff < 0) next();
-    else prev();
-  };
-}
-
-/* ---------------- NAV ---------------- */
-
-function next() {
-  vibrate();
-
-  if (state.step < categories.length) state.step++;
-
+function updateName(i, v) {
+  state.players[i].name = v;
   save();
-  render();
 }
 
-function prev() {
-  vibrate();
+/* ---------------- PLAYER CONTROL ---------------- */
 
-  if (state.step > 0) state.step--;
+function setPlayerCount(n) {
+  const defaults = ["Jan", "Piet", "Eva", "Klaas", "Lisa", "Tom"];
+
+  state.players = Array.from({ length: n }, (_, i) => ({
+    name: defaults[i] || `Speler ${i + 1}`
+  }));
 
   save();
   render();
@@ -124,71 +77,139 @@ function prev() {
 /* ---------------- FLOW ---------------- */
 
 function startGame() {
+  state.mode = "game";
   state.step = 0;
   save();
   render();
 }
 
+function next() {
+  if (state.step < categories.length - 1) {
+    state.step++;
+  } else {
+    state.mode = "result";
+  }
+  save();
+  render();
+}
+
+function prev() {
+  if (state.step > 0) state.step--;
+  save();
+  render();
+}
+
+/* ---------------- SWIPE ---------------- */
+
+let sx = 0;
+
+function bindSwipe() {
+  const el = document.getElementById("app");
+  if (!el) return;
+
+  el.ontouchstart = e => sx = e.touches[0].clientX;
+
+  el.ontouchend = e => {
+    const dx = e.changedTouches[0].clientX - sx;
+    if (Math.abs(dx) < 70) return;
+    dx < 0 ? next() : prev();
+  };
+}
+
+/* ---------------- CALC ---------------- */
+
+function totals() {
+  const t = {};
+  state.players.forEach(p => t[p.name] = 0);
+
+  Object.entries(state.scores).forEach(([k, v]) => {
+    const p = k.split("_")[0];
+    if (!t[p]) t[p] = 0;
+    t[p] += v;
+  });
+
+  return t;
+}
+
 /* ---------------- RENDER ---------------- */
 
-function render(attachSwipe = true) {
+function render() {
   const app = document.getElementById("app");
   if (!app) return;
 
-  /* START SCREEN */
-  if (state.step === -1) {
-    app.innerHTML = renderStart();
-    return;
-  }
+  if (state.mode === "setup") return renderSetup(app);
+  if (state.mode === "result") return renderResult(app);
 
-  /* RESULT */
-  if (state.step >= categories.length) {
-    app.innerHTML = renderResult();
-    return;
-  }
+  renderGame(app);
+  setTimeout(bindSwipe, 0);
+}
 
-  const c = cat();
+/* ---------------- SETUP UI ---------------- */
 
-  if (!c) {
-    state.step = -1;
-    save();
-    return render();
-  }
+function renderSetup(app) {
+  app.innerHTML = `
+    <div class="container">
+
+      <h1>🏔 Cascadia</h1>
+
+      <div class="card">
+
+        <label>Spelers (2–6)</label>
+
+        <div class="grid">
+          ${[2,3,4,5,6].map(n => `
+            <button onclick="setPlayerCount(${n})">${n}</button>
+          `).join("")}
+        </div>
+
+      </div>
+
+      <div class="card">
+        <h3>Naam spelers</h3>
+
+        ${state.players.map((p, i) => `
+          <input
+            type="text"
+            value="${p.name}"
+            oninput="updateName(${i}, this.value)"
+          />
+        `).join("")}
+      </div>
+
+      <button onclick="startGame()">Start spel</button>
+
+    </div>
+  `;
+}
+
+/* ---------------- GAME UI ---------------- */
+
+function renderGame(app) {
+  const c = categories[state.step];
 
   app.innerHTML = `
     <div class="container">
 
-      <div class="progress">
-        ${state.step + 1} / ${categories.length}
+      <div class="topbar">
+        <div>${state.step + 1}/${categories.length}</div>
+        <div>${c.name}</div>
       </div>
-
-      <h1>${c.name}</h1>
-
-      <p class="hint">Swipe ← → of tik knoppen</p>
 
       <div class="card">
 
-        ${state.players.map((p, i) => `
+        ${state.players.map(p => `
           <div class="row">
 
-            <div class="name">
-              <input
-                type="text"
-                value="${p.name}"
-                oninput="updateName(${i}, this.value)"
-              />
-            </div>
+            <div class="name">${p.name}</div>
 
-            <div class="score">
-              <input
-                type="number"
-                inputmode="numeric"
-                pattern="[0-9]*"
-                value="${getScore(p.name, c.id)}"
-                onfocus="this.select()"
-                onchange="setScore('${p.name}', '${c.id}', this.value)"
-              />
-            </div>
+            <input
+              class="score"
+              type="number"
+              inputmode="numeric"
+              value="${getScore(p.name, c.id)}"
+              onfocus="this.select()"
+              onchange="setScore('${p.name}', '${c.id}', this.value)"
+            />
 
           </div>
         `).join("")}
@@ -202,103 +223,51 @@ function render(attachSwipe = true) {
 
     </div>
 
-    ${renderScoreboard()}
-  `;
-
-  if (attachSwipe) setTimeout(setupSwipe, 0);
-}
-
-/* ---------------- START SCREEN ---------------- */
-
-function renderStart() {
-  return `
-    <div class="container">
-
-      <h1>🏔 Cascadia Score</h1>
-
-      <div class="card">
-
-        <h3>Spelers</h3>
-
-        ${state.players.map((p, i) => `
-          <input
-            type="text"
-            value="${p.name}"
-            oninput="updateName(${i}, this.value)"
-          />
-        `).join("")}
-
-      </div>
-
-      <button onclick="startGame()">Start spel</button>
-
-    </div>
-  `;
-}
-
-/* ---------------- SCOREBOARD ---------------- */
-
-function calcTotals() {
-  const totals = {};
-
-  state.players.forEach(p => totals[p.name] = 0);
-
-  Object.entries(state.scores).forEach(([k, v]) => {
-    const player = k.split("_")[0];
-    if (!totals[player]) totals[player] = 0;
-    totals[player] += v;
-  });
-
-  return totals;
-}
-
-function renderScoreboard() {
-  const totals = calcTotals();
-
-  return `
-    <div class="scoreboard">
-      ${Object.entries(totals)
-        .sort((a, b) => b[1] - a[1])
-        .map(([p, s]) => `
-          <div class="player">
-            <div>${p}</div>
-            <div>${s}</div>
-          </div>
-        `).join("")}
-    </div>
+    ${renderScores()}
   `;
 }
 
 /* ---------------- RESULT ---------------- */
 
-function renderResult() {
-  const totals = calcTotals();
-  const sorted = Object.entries(totals).sort((a, b) => b[1] - a[1]);
+function renderResult(app) {
+  const t = totals();
 
-  return `
+  app.innerHTML = `
     <div class="container">
 
       <h1>🏆 Resultaat</h1>
 
       <div class="card">
-
-        ${sorted.map(([p, s], i) => `
-          <h2>${i + 1}. ${p} — ${s}</h2>
-        `).join("")}
-
+        ${Object.entries(t)
+          .sort((a,b)=>b[1]-a[1])
+          .map(([p,s],i)=>`
+            <div class="row">
+              <strong>${i+1}. ${p}</strong>
+              <span>${s}</span>
+            </div>
+          `).join("")}
       </div>
 
-      <button onclick="reset()">Nieuw spel</button>
+      <button onclick="location.reload()">Nieuw spel</button>
 
     </div>
 
-    ${renderScoreboard()}
+    ${renderScores()}
   `;
 }
 
-/* ---------------- RESET ---------------- */
+/* ---------------- MINI SCOREBOARD ---------------- */
 
-function reset() {
-  localStorage.removeItem("cascadia_state");
-  location.reload();
+function renderScores() {
+  const t = totals();
+
+  return `
+    <div class="bar">
+      ${Object.entries(t)
+        .sort((a,b)=>b[1]-a[1])
+        .map(([p,s])=>`
+          <div>${p}: ${s}</div>
+        `).join("")}
+    </div>
+  `;
 }
