@@ -2,8 +2,14 @@
 <html lang="nl">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Cascadia Score App</title>
+    
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="Cascadia">
+    
+    <link rel="apple-touch-icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22 background-color=%22%232c3e50%22><rect width=%22100%22 height=%22100%22 fill=%22%232c3e50%22 rx=%2220%22/><text y=%22.75em%22 x=%225%22 font-size=%2275%22>🏔</text></svg>">
     <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🏔</text></svg>">
 
     <style>
@@ -23,8 +29,11 @@
             align-items: center;
             padding: 15px;
             margin: 0;
+            /* Voorkomt dat het scherm veert bij scrollen op iOS */
+            background-attachment: fixed;
         }
 
+        /* iOS safe areas voor telefoons met een notch/thuisbalk */
         .card { 
             background: white; 
             padding: 25px; 
@@ -34,9 +43,10 @@
             max-width: 1000px;
             box-sizing: border-box;
             margin-bottom: 25px;
+            margin-top: env(safe-area-inset-top, 0px);
         }
 
-        h1 { text-align: center; color: var(--accent); margin-bottom: 5px; }
+        h1 { text-align: center; color: var(--accent); margin-bottom: 5px; margin-top: 10px; }
         .subtitle { text-align: center; color: #64748b; margin-bottom: 20px; font-size: 0.9rem; }
         
         .setup { 
@@ -51,6 +61,10 @@
             align-items: center;
         }
 
+        .setup select, .setup label {
+            font-size: 1rem;
+        }
+
         .table-responsive {
             width: 100%;
             overflow-x: auto;
@@ -63,7 +77,7 @@
             display: grid; 
             gap: 1px; 
             background-color: var(--border);
-            min-width: 500px;
+            min-width: 600px; /* Iets breder gemaakt voor de spelersnamen */
         }
 
         .cell { background: white; padding: 12px; display: flex; align-items: center; justify-content: center; }
@@ -79,6 +93,24 @@
             text-align: center;
             font-size: 1rem;
             outline-color: var(--accent);
+        }
+
+        /* Input voor spelersnaam */
+        .name-input {
+            width: 90%;
+            border: none;
+            background: transparent;
+            text-align: center;
+            font-weight: bold;
+            font-size: 0.85rem;
+            color: #2c3e50;
+            text-transform: uppercase;
+            border-bottom: 1px dashed #cbd5e1;
+            padding: 4px 0;
+        }
+        .name-input:focus {
+            outline: none;
+            border-bottom: 2px solid var(--accent);
         }
 
         .bonus-input { background-color: #f0fdf4; border-color: #bbf7d0 !important; font-weight: bold; color: var(--accent); pointer-events: none; }
@@ -104,7 +136,7 @@
             .orientation-tip { display: block; }
         }
 
-        .rules-container { width: 100%; max-width: 1000px; background: white; padding: 30px; border-radius: 16px; border: 1px solid var(--border); box-sizing: border-box; line-height: 1.6; }
+        .rules-container { width: 100%; max-width: 1000px; background: white; padding: 30px; border-radius: 16px; border: 1px solid var(--border); box-sizing: border-box; line-height: 1.6; margin-bottom: env(safe-area-inset-bottom, 0px); }
         .rules-container h2 { color: var(--primary); border-bottom: 2px solid var(--accent); padding-bottom: 8px; margin-top: 0; }
         .rules-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 25px; margin-top: 20px; }
         .rule-box h3 { margin-top: 0; color: var(--accent); font-size: 1.1rem; border-bottom: 1px solid #eee; padding-bottom: 5px; }
@@ -117,17 +149,17 @@
 
 <div class="card">
     <h1>Cascadia Calculator</h1>
-    <p class="subtitle">Bereken de winnaar van de wildernis. (Officiële Nederlandse Puntentelling)</p>
+    <p class="subtitle">Officiële Nederlandse Puntentelling</p>
 
     <div class="orientation-tip">
-        📱 <strong>Tip:</strong> Kantel je scherm voor een volledig overzicht of swipe opzij in de tabel.
+        📱 <strong>Tip:</strong> Kantel je scherm voor een volledig overzicht.
     </div>
 
     <div class="setup">
         <div>
-            <label>Aantal spelers: </label>
-            <select id="playerCount" onchange="initApp()">
-                <option value="2" selected>2 Spelers</option>
+            <label>Spelers: </label>
+            <select id="playerCount" onchange="changePlayerCount()">
+                <option value="2">2 Spelers</option>
                 <option value="3">3 Spelers</option>
                 <option value="4">4 Spelers</option>
                 <option value="5">5 Spelers</option>
@@ -135,7 +167,7 @@
             </select>
         </div>
         <div>
-            <input type="checkbox" id="useLandmarks" onchange="initApp()">
+            <input type="checkbox" id="useLandmarks" onchange="toggleLandmarks()">
             <label for="useLandmarks"><strong>Landmarks Uitbreiding</strong></label>
         </div>
     </div>
@@ -162,7 +194,7 @@
         <div class="rule-box">
             <h3>🐻 Wildlife & Gebieden</h3>
             <ul>
-                <li><strong>Dierkaarten:</strong> Gebruik de scorekaart per diersoort. Vul het totaal per dier in.</li>
+                <li><strong>Dierkaarten:</strong> Vul het totaal per diersoort in.</li>
                 <li><strong>Grootste Gebied:</strong> Tel de tegels van je grootste groep per terreintype. Elke tegel = 1 punt.</li>
                 <li><strong>Bonussen:</strong> Grootste krijgt +3, tweede +1 (bij 3-6 spelers). Bij 2 spelers krijgt de grootste +2.</li>
             </ul>
@@ -170,23 +202,14 @@
         <div class="rule-box">
             <h3>🏛 Landmarks <span class="landmark-badge">Uitbreiding</span></h3>
             <ul>
-                <li><strong>Landmark-fiches:</strong> Punten die op het fysieke houten landmark-fiche staan.</li>
+                <li><strong>Landmark-fiches:</strong> Punten op het houten landmark-fiche zelf.</li>
                 <li><strong>Landmark-kaarten:</strong> Bonuspunten op basis van de kaart die bij jouw landmark hoort.</li>
             </ul>
         </div>
         <div class="rule-box">
             <h3>🌲 Natuurfiches</h3>
             <ul>
-                <li><strong>Natuurfiches:</strong> Elk ongebruikt natuurfiche aan het einde van het spel is <strong>1 punt</strong> waard.</li>
-                <li>Gebruik ze tijdens het spel om keuzes te verversen of specifieke combinaties te pakken.</li>
-            </ul>
-        </div>
-        <div class="rule-box">
-            <h3>🏆 Eindstand & Gelijkspel</h3>
-            <ul>
-                <li><strong>Totaal:</strong> De som van alle dieren, gebieden, bonussen en natuurfiches.</li>
-                <li><strong>Tie-break:</strong> Bij een gelijkspel wint de speler met de <strong>meeste natuurfiches</strong>.</li>
-                <li>Is het dan nog gelijk? Dan delen de spelers de overwinning.</li>
+                <li><strong>Natuurfiches:</strong> Elk ongebruikt natuurfiche aan het einde is <strong>1 punt</strong> waard.</li>
             </ul>
         </div>
     </div>
@@ -209,31 +232,44 @@
         { id: 'riv', name: '🌊 Rivieren' }
     ];
 
+    // Laad initiële instellingen uit localStorage of gebruik defaults
+    let config = JSON.parse(localStorage.getItem('cascadia_config')) || { players: 2, landmarks: false };
+    let savedScores = JSON.parse(localStorage.getItem('cascadia_scores')) || {};
+    let savedNames = JSON.parse(localStorage.getItem('cascadia_names')) || {};
+
     function initApp() {
-        const numPlayers = parseInt(document.getElementById('playerCount').value);
-        const useLandmarks = document.getElementById('useLandmarks').checked;
+        document.getElementById('playerCount').value = config.players;
+        document.getElementById('useLandmarks').checked = config.landmarks;
+
+        const numPlayers = config.players;
+        const useLandmarks = config.landmarks;
         const table = document.getElementById('scoreTable');
         table.style.gridTemplateColumns = `180px repeat(${numPlayers}, 1fr)`;
         
         let html = '';
         html += `<div class="cell header-cell">Categorie</div>`;
-        for (let i = 1; i <= numPlayers; i++) html += `<div class="cell header-cell">Speler ${i}</div>`;
+        for (let i = 1; i <= numPlayers; i++) {
+            let name = savedNames[`p${i}`] || `Speler ${i}`;
+            html += `<div class="cell header-cell"><input type="text" class="name-input" data-player="p${i}" value="${name}" oninput="saveName(this)"></div>`;
+        }
 
         // Wildlife
         html += `<div class="cell section-header">Dierkaarten</div>`;
-        wildlife.forEach(cat => {
+        wildlife.forEach((cat, index) => {
             html += `<div class="cell label-cell">${cat.name}</div>`;
             for (let i = 1; i <= numPlayers; i++) {
-                html += `<div class="cell"><input type="number" class="score-input p${i}" value="0" min="0" oninput="calculate()" onfocus="clearZero(this)" onblur="restoreZero(this)"></div>`;
+                let val = savedScores[`p${i}_wl_${index}`] ?? 0;
+                html += `<div class="cell"><input type="number" class="score-input p${i}" data-key="p${i}_wl_${index}" value="${val}" min="0" oninput="updateScore(this)" onfocus="clearZero(this)" onblur="restoreZero(this)"></div>`;
             }
         });
 
         // Gebieden
         html += `<div class="cell section-header">Leefgebieden (1 punt/tegel)</div>`;
-        habitats.forEach(cat => {
+        habitats.forEach((cat, index) => {
             html += `<div class="cell label-cell">${cat.name}</div>`;
             for (let i = 1; i <= numPlayers; i++) {
-                html += `<div class="cell"><input type="number" class="score-input p${i} hab-size" data-hab="${cat.id}" value="0" min="0" oninput="calculate()" onfocus="clearZero(this)" onblur="restoreZero(this)"></div>`;
+                let val = savedScores[`p${i}_hab_${cat.id}`] ?? 0;
+                html += `<div class="cell"><input type="number" class="score-input p${i} hab-size" data-hab="${cat.id}" data-key="p${i}_hab_${cat.id}" value="${val}" min="0" oninput="updateScore(this)" onfocus="clearZero(this)" onblur="restoreZero(this)"></div>`;
             }
         });
 
@@ -242,11 +278,13 @@
             html += `<div class="cell section-header">Landmarks</div>`;
             html += `<div class="cell label-cell">🏛 Landmark Fiches</div>`;
             for (let i = 1; i <= numPlayers; i++) {
-                html += `<div class="cell"><input type="number" class="score-input p${i}" value="0" min="0" oninput="calculate()" onfocus="clearZero(this)" onblur="restoreZero(this)"></div>`;
+                let val = savedScores[`p${i}_lm_f`] ?? 0;
+                html += `<div class="cell"><input type="number" class="score-input p${i}" data-key="p${i}_lm_f" value="${val}" min="0" oninput="updateScore(this)" onfocus="clearZero(this)" onblur="restoreZero(this)"></div>`;
             }
             html += `<div class="cell label-cell">📜 Landmark Kaarten</div>`;
             for (let i = 1; i <= numPlayers; i++) {
-                html += `<div class="cell"><input type="number" class="score-input p${i}" value="0" min="0" oninput="calculate()" onfocus="clearZero(this)" onblur="restoreZero(this)"></div>`;
+                let val = savedScores[`p${i}_lm_k`] ?? 0;
+                html += `<div class="cell"><input type="number" class="score-input p${i}" data-key="p${i}_lm_k" value="${val}" min="0" oninput="updateScore(this)" onfocus="clearZero(this)" onblur="restoreZero(this)"></div>`;
             }
         }
 
@@ -261,7 +299,8 @@
         html += `<div class="cell section-header">Natuur</div>`;
         html += `<div class="cell label-cell">🌲 Natuurfiches</div>`;
         for (let i = 1; i <= numPlayers; i++) {
-            html += `<div class="cell"><input type="number" class="score-input p${i}" value="0" min="0" oninput="calculate()" onfocus="clearZero(this)" onblur="restoreZero(this)"></div>`;
+            let val = savedScores[`p${i}_nature`] ?? 0;
+            html += `<div class="cell"><input type="number" class="score-input p${i}" data-key="p${i}_nature" value="${val}" min="0" oninput="updateScore(this)" onfocus="clearZero(this)" onblur="restoreZero(this)"></div>`;
         }
 
         // Totaal
@@ -275,11 +314,34 @@
         calculate();
     }
 
+    function changePlayerCount() {
+        config.players = parseInt(document.getElementById('playerCount').value);
+        localStorage.setItem('cascadia_config', JSON.stringify(config));
+        initApp();
+    }
+
+    function toggleLandmarks() {
+        config.landmarks = document.getElementById('useLandmarks').checked;
+        localStorage.setItem('cascadia_config', JSON.stringify(config));
+        initApp();
+    }
+
+    function saveName(el) {
+        savedNames[el.dataset.player] = el.value;
+        localStorage.setItem('cascadia_names', JSON.stringify(savedNames));
+    }
+
+    function updateScore(el) {
+        savedScores[el.dataset.key] = parseInt(el.value) || 0;
+        localStorage.setItem('cascadia_scores', JSON.stringify(savedScores));
+        calculate();
+    }
+
     function clearZero(el) { if (el.value === "0") el.value = ""; }
     function restoreZero(el) { if (el.value === "") el.value = "0"; }
 
     function calculate() {
-        const numPlayers = parseInt(document.getElementById('playerCount').value);
+        const numPlayers = config.players;
         let playerBonuses = Array(numPlayers).fill(0);
 
         habitats.forEach(hab => {
@@ -326,8 +388,12 @@
     }
 
     function resetScores() {
-        document.querySelectorAll('.score-input').forEach(input => input.value = 0);
-        calculate();
+        if(confirm("Weet je zeker dat je alle scores wilt resetten naar 0?")) {
+            savedScores = {};
+            localStorage.setItem('cascadia_scores', JSON.stringify(savedScores));
+            document.querySelectorAll('.score-input').forEach(input => input.value = 0);
+            calculate();
+        }
     }
 
     initApp();
