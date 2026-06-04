@@ -1,3 +1,20 @@
+window.addEventListener("load", () => {
+  if (!state || !state.players) {
+    state = {
+      step: -1,
+      players: [
+        { name: "Jan" },
+        { name: "Piet" },
+        { name: "Eva" },
+        { name: "Klaas" }
+      ],
+      scores: {}
+    };
+    save();
+    render();
+  }
+});
+
 const categories = [
   { id: "fox", name: "🦊 Vossen" },
   { id: "bear", name: "🐻 Beren" },
@@ -12,16 +29,20 @@ const categories = [
   { id: "river", name: "🌊 Rivieren" }
 ];
 
-let state = load() || {
-  step: -1, // startscreen
-  players: [
-    { name: "Jan" },
-    { name: "Piet" },
-    { name: "Eva" },
-    { name: "Klaas" }
-  ],
-  scores: {}
-};
+let state = load();
+
+if (!state || !state.players) {
+  state = {
+    step: -1,
+    players: [
+      { name: "Jan" },
+      { name: "Piet" },
+      { name: "Eva" },
+      { name: "Klaas" }
+    ],
+    scores: {}
+  };
+}
 
 function save() {
   localStorage.setItem("cascadia_state", JSON.stringify(state));
