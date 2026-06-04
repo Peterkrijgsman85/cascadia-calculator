@@ -1,11 +1,14 @@
 /* ---------------- STATE MANAGEMENT ---------------- */
+// De vaste lijst met namen voor jouw speelgroep
+const defaultNames = ["Hidde", "Jens", "Emma", "Peter", "Willemieke", "Pieter"];
+
 let state = {
   mode: "setup", // setup, game, result, rules
   players: [
-    { name: "Speler 1" },
-    { name: "Speler 2" }
+    { name: "Hidde" },
+    { name: "Jens" }
   ],
-  useLandmarks: true, // Nieuwe optie voor de startpagina
+  useLandmarks: true, 
   step: 0,
   scores: {} // Structuur: { "Speler Name": { "cat_id": score } }
 };
@@ -22,9 +25,9 @@ const allCategories = [
   { id: "terrain", name: "Leefgebieden 🌲", color: "#16a34a", icon: "🌲", isLandmark: false },
   { id: "bonus", name: "Gebiedsbonussen 👑", color: "#d97706", icon: "👑", isLandmark: false },
   { id: "nature", name: "Natuurfiches 🌲", color: "#0d9488", icon: "💧", isLandmark: false },
-  // De landmarks categorieën
-  { id: "landmarks_cards", name: "Landmark Kaarten 🏛", color: "#7c3aed", icon: "📜", isLandmark: true },
-  { id: "landmarks_tokens", name: "Landmark Fiches 🏛", color: "#6d28d9", icon: "🪙", isLandmark: true }
+  // De landmarks categorieën (krijgen een mooie houten/bruine tint in plaats van paars)
+  { id: "landmarks_cards", name: "Landmark Kaarten 🏛", color: "#854d0e", icon: "📜", isLandmark: true },
+  { id: "landmarks_tokens", name: "Landmark Fiches 🏛", color: "#a16207", icon: "🪙", isLandmark: true }
 ];
 
 // Dynamische lijst op basis van de gekozen instelling
@@ -60,7 +63,9 @@ function setPlayerCount(count) {
   const currentPlayers = [...state.players];
   if (count > currentPlayers.length) {
     for (let i = currentPlayers.length; i < count; i++) {
-      currentPlayers.push({ name: `Speler ${i + 1}` });
+      // Pak de naam uit de vaste lijst, of val terug op Speler X als het er nóg meer worden
+      const nextName = defaultNames[i] || `Speler ${i + 1}`;
+      currentPlayers.push({ name: nextName });
     }
   } else {
     currentPlayers.length = count;
@@ -71,7 +76,7 @@ function setPlayerCount(count) {
 }
 
 function updateName(index, name) {
-  state.players[index].name = name || `Speler ${index + 1}`;
+  state.players[index].name = name || defaultNames[index] || `Speler ${index + 1}`;
   saveState();
 }
 
@@ -155,7 +160,6 @@ function adjustScore(playerName, catId, amount) {
 
   state.scores[playerName][catId] = newScore;
   
-  // Update de DOM direct voor vliegensvlugge responsiviteit
   const element = document.getElementById(`score-${playerName}-${catId}`);
   if (element) element.innerText = newScore;
 
@@ -183,11 +187,9 @@ function handleTouchEnd(e) {
   touchEndX = e.changedTouches[0].screenX;
   const diff = touchStartX - touchEndX;
 
-  // Swipe naar links (Volgende)
   if (diff > 80) {
     next();
   }
-  // Swipe naar rechts (Vorige)
   if (diff < -80) {
     prev();
   }
@@ -250,7 +252,7 @@ function renderSetup(app) {
         </div>
         <label class="switch-container" style="position: relative; display: inline-block; width: 50px; height: 28px;">
           <input type="checkbox" ${state.useLandmarks ? 'checked' : ''} onchange="toggleLandmarks()" style="opacity: 0; width: 0; height: 0;">
-          <span class="slider-toggle" style="position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background-color: ${state.useLandmarks ? '#7c3aed' : '#cbd5e1'}; transition: .3s; border-radius: 34px;"></span>
+          <span class="slider-toggle" style="position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background-color: ${state.useLandmarks ? '#14532d' : '#cbd5e1'}; transition: .3s; border-radius: 34px;"></span>
         </label>
       </div>
 
@@ -346,7 +348,7 @@ function updateMiniScoreboard() {
 }
 
 function renderResult(app) {
-  document.documentElement.style.setProperty('--category-color', '#22c55e');
+  document.documentElement.style.setProperty('--category-color', '#16a34a');
 
   const winners = [...state.players].sort((a, b) => calculateTotal(b.name) - calculateTotal(a.name));
 
@@ -410,7 +412,8 @@ function renderResult(app) {
 }
 
 function renderRulesScreen(app) {
-  document.documentElement.style.setProperty('--category-color', '#7c3aed');
+  // Prachtig diep Cascadia bosgroen voor het regelscherm
+  document.documentElement.style.setProperty('--category-color', '#14532d');
 
   app.innerHTML = `
     <div class="rules-screen core-container">
