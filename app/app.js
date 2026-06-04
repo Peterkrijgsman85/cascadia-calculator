@@ -4,12 +4,15 @@ const categories = [
   { id: "hawk", name: "🦅 Buizerds" },
   { id: "elk", name: "🦌 Wapiti" },
   { id: "salmon", name: "🐟 Zalmen" },
+
   { id: "mountain", name: "🏔 Bergen" },
   { id: "forest", name: "🌲 Bossen" },
   { id: "prairie", name: "🌾 Prairie" },
   { id: "wetland", name: "💧 Moeras" },
   { id: "river", name: "🌊 Rivieren" }
 ];
+
+/* ---------------- STATE ---------------- */
 
 let state;
 
@@ -42,6 +45,34 @@ window.addEventListener("load", () => {
   render();
 });
 
+/* ---------------- SWIPE ---------------- */
+
+let touchStartX = 0;
+let touchEndX = 0;
+
+function setupSwipe() {
+  const el = document.getElementById("app");
+  if (!el) return;
+
+  el.ontouchstart = (e) => {
+    touchStartX = e.changedTouches[0].screenX;
+  };
+
+  el.ontouchend = (e) => {
+    touchEndX = e.changedTouches[0].screenX;
+    handleSwipe();
+  };
+}
+
+function handleSwipe() {
+  const diff = touchEndX - touchStartX;
+
+  if (Math.abs(diff) < 60) return;
+
+  if (diff < 0) next();
+  else prev();
+}
+
 /* ---------------- CORE ---------------- */
 
 function currentCat() {
@@ -63,94 +94,142 @@ function updateName(i, value) {
   save();
 }
 
-/* ---------------- RENDER ---------------- */
-
-function render() {
-  const app = document.getElementById("app");
-  if (!app) return;
-
-  if (state.step === -1) return renderStart();
-
-  if (state.step >= categories.length) return renderResult();
-
-  const cat = currentCat();
-  if (!cat) {
-    state.step = -1;
-    save();
-    return renderStart();
-  }
-
-  app.innerHTML = `
-    <div class="container">
-      <h1>${cat.name}</h1>
-
-      <div class="card">
-        ${state.players.map((p, i) => `
-          <div class="row">
-            <div class="name">
-              <input type="text"
-                value="${p.name}"
-                oninput="updateName(${i}, this.value)"
-              />
-            </div>
-
-            <div class="score">
-              <input type="number"
-                inputmode="numeric"
-                value="${getScore(p.name, cat.id)}"
-                onchange="setScore('${p.name}', '${cat.id}', this.value)"
-              />
-            </div>
-          </div>
-        `).join("")}
-      </div>
-
-      <button onclick="prev()">← Vorige</button>
-      <button onclick="next()">Volgende →</button>
-    </div>
-
-    ${renderScoreboard()}
-  `;
-}
-
-/* ---------------- START ---------------- */
+/* ---------------- START SCREEN ---------------- */
 
 function renderStart() {
   const app = document.getElementById("app");
 
   app.innerHTML = `
     <div class="container">
-      <h1>🏔 Cascadia</h1>
+      <h1>🏔 Cascadia Score</h1>
 
-      <button onclick="state.step=0;save();render()">
+      <div class="card">
+        <h3>Spelers</h3>
+
+        ${state.players.map((p, i) => `
+          <input
+            type="text"
+            value="${p.name}"
+            oninput="updateName(${i}, this.value)"
+          />
+        `).join("")}
+      </div>
+
+      <button onclick="startGame()">
         Start spel
       </button>
     </div>
   `;
 }
 
-/* ---------------- NAV ---------------- */
+function startGame() {
+  state.step = 0;
+  save();
+  render();
+}
+
+/* ---------------- CATEGORY VIEW ---------------- */
+
+function renderCategory(cat) {
+  return `
+    <div class="container">
+
+      <h1>${cat.name}</h1>
+      <p class="hint">👆 Swipe om te navigeren</p>
+
+      <div class="card">
+
+        ${state.players.map((p, i) => `
+          <div class="row">
+
+            <div class="name">
+              ${p.name}
+            </div>
+
+            <div class="score">
+              <input
+                type="number"
+                inputmode="numeric"
+                pattern="[0-9]*"
+                value="${getScore(p.name, cat.id)}"
+                onfocus="this.select()"
+                onchange="setScore('${p.name}', '${cat.id}', this.value)"
+              />
+            </div>
+
+          </div>
+        `).join("")}
+
+      </div>
+
+    </div>
+
+    ${renderScoreboard()}
+  `;
+}
+
+/* ---------------- MAIN RENDER ---------------- */
+
+function render() {
+  const app = document.getElementById("app");
+  if (!app) return;
+
+  if (state.step === -1) {
+    renderStart();
+    return;
+  }
+
+  if (state.step >= categories.length) {
+    renderResult();
+    return;
+  }
+
+  const cat = currentCat();
+  if (!cat) {
+    state.step = -1;
+    save();
+    renderStart();
+    return;
+  }
+
+  app.innerHTML = renderCategory(cat);
+
+  setTimeout(setupSwipe, 0);
+}
+
+/* ---------------- NAVIGATION ---------------- */
 
 function next() {
   state.step++;
+
+  if (state.step > categories.length) {
+    state.step = categories.length;
+  }
+
   save();
   render();
 }
 
 function prev() {
-  if (state.step > 0) state.step--;
-  save();
-  render();
+  if (state.step > 0) {
+    state.step--;
+    save();
+    render();
+  }
 }
 
-/* ---------------- SCORE ---------------- */
+/* ---------------- SCOREBOARD ---------------- */
 
 function calcTotals() {
   const totals = {};
-  state.players.forEach(p => totals[p.name] = 0);
 
-  Object.entries(state.scores).forEach(([k,v]) => {
+  state.players.forEach(p => {
+    totals[p.name] = 0;
+  });
+
+  Object.entries(state.scores).forEach(([k, v]) => {
     const player = k.split("_")[0];
+    if (!totals[player]) totals[player] = 0;
     totals[player] += v;
   });
 
@@ -163,9 +242,11 @@ function renderScoreboard() {
   return `
     <div class="scoreboard">
       ${Object.entries(totals)
-        .sort((a,b)=>b[1]-a[1])
-        .map(([p,s])=>`
-          <div>${p}: ${s}</div>
+        .sort((a, b) => b[1] - a[1])
+        .map(([p, s]) => `
+          <div class="player">
+            ${p}<br><span>${s}</span>
+          </div>
         `).join("")}
     </div>
   `;
@@ -175,19 +256,30 @@ function renderScoreboard() {
 
 function renderResult() {
   const totals = calcTotals();
-  const sorted = Object.entries(totals).sort((a,b)=>b[1]-a[1]);
+  const sorted = Object.entries(totals).sort((a, b) => b[1] - a[1]);
 
-  document.getElementById("app").innerHTML = `
+  const app = document.getElementById("app");
+
+  app.innerHTML = `
     <div class="container">
       <h1>🏆 Resultaat</h1>
 
       <div class="card">
-        ${sorted.map(([p,s],i)=>`
-          <h2>${i+1}. ${p} — ${s}</h2>
+        ${sorted.map(([p, s], i) => `
+          <h2>${i + 1}. ${p} — ${s}</h2>
         `).join("")}
       </div>
 
-      <button onclick="location.reload()">Nieuw spel</button>
+      <button onclick="reset()">Nieuw spel</button>
     </div>
+
+    ${renderScoreboard()}
   `;
+}
+
+/* ---------------- RESET ---------------- */
+
+function reset() {
+  localStorage.removeItem("cascadia_state");
+  location.reload();
 }
