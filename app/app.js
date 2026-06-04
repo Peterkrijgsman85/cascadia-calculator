@@ -211,7 +211,9 @@ function render() {
 
 function renderSetup(app) {
   app.innerHTML = `
-    <div class="setup-screen core-container">
+    <div class="setup-screen core-container" style="position: relative;">
+      <button class="btn-info-floating" onclick="openRules()" title="Bekijk spelregels">⚙️</button>
+
       <header class="hero-header">
         <span class="hero-icon">🏔</span>
         <h1>Cascadia</h1>
@@ -248,10 +250,6 @@ function renderSetup(app) {
 
       <button class="btn-primary" onclick="startGame()">
         Start Berekening →
-      </button>
-      
-      <button class="btn-secondary" onclick="openRules()">
-        ⚙️ Bekijk Spelopzet & Regels
       </button>
     </div>
 
@@ -305,8 +303,7 @@ function renderGame(app) {
           <h2>${c.name}</h2>
           <span class="step-counter">${state.step + 1} / ${categories.length}</span>
         </div>
-        <button class="btn-reset-danger" onclick="resetGame()" title="Spel resetten">🗑️</button>
-      </header>
+        <div style="width: 44px;"></div> </header>
 
       <div class="scoring-list">
         ${state.players.map(p => {
@@ -328,10 +325,11 @@ function renderGame(app) {
         }).join("")}
       </div>
 
-      <div style="margin-top: 20px;">
-        <button class="btn-primary" onclick="next()" style="background: var(--category-color); box-shadow: none;">
+      <div class="game-action-row" style="margin-top: 24px; display: flex; gap: 12px;">
+        <button class="btn-primary" onclick="next()" style="background: var(--category-color); box-shadow: none; margin-bottom: 0; flex: 1;">
           ${state.step === categories.length - 1 ? 'Bekijk Einduitslag 🏆' : 'Volgende Categorie →'}
         </button>
+        <button class="btn-reset-inline" onclick="resetGame()" title="Spel resetten">🗑️</button>
       </div>
 
       <footer class="game-footer">
