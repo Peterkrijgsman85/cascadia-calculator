@@ -6,7 +6,7 @@
   --border-color: #e2e8f0;
   --primary: #1e293b;
   --primary-hover: #0f172a;
-  --category-color: #1e293b; /* Wordt dynamisch overschreven door JS */
+  --category-color: #1e293b;
 }
 
 * {
@@ -19,7 +19,7 @@ body {
   font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
   background: var(--bg-main);
   color: var(--text-main);
-  padding-bottom: 80px; /* Ruimte voor de vaste scoreboard-balk */
+  padding-bottom: 90px;
 }
 
 .core-container {
@@ -28,18 +28,23 @@ body {
   margin: 0 auto;
 }
 
+/* Breedbeeld-overide voor het resultatenscherm als de tabel getoond wordt */
+.core-container.wide {
+  max-width: 800px;
+}
+
 /* --- HERO HEADER --- */
 .hero-header {
   text-align: center;
-  margin-bottom: 32px;
+  margin-bottom: 24px;
 }
 .hero-icon {
-  font-size: 48px;
+  font-size: 44px;
   display: block;
-  margin-bottom: 8px;
+  margin-bottom: 4px;
 }
 h1 {
-  font-size: 28px;
+  font-size: 26px;
   margin: 0;
   font-weight: 800;
   letter-spacing: -0.5px;
@@ -47,7 +52,7 @@ h1 {
 .subtitle {
   color: var(--text-muted);
   margin: 4px 0 0 0;
-  font-size: 14px;
+  font-size: 13px;
   text-transform: uppercase;
   letter-spacing: 1px;
 }
@@ -58,12 +63,12 @@ h1 {
   padding: 20px;
   border-radius: 16px;
   box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05), 0 2px 4px -2px rgba(0,0,0,0.05);
-  margin-bottom: 20px;
+  margin-bottom: 16px;
 }
 
 .section-label {
   display: block;
-  font-size: 13px;
+  font-size: 12px;
   font-weight: 700;
   text-transform: uppercase;
   color: var(--text-muted);
@@ -81,7 +86,7 @@ h1 {
 .inputs-stack {
   display: flex;
   flex-direction: column;
-  gap: 12px;
+  gap: 10px;
 }
 
 .input-group {
@@ -102,7 +107,7 @@ h1 {
   width: 100%;
   border: none;
   background: transparent;
-  padding: 12px 0;
+  padding: 10px 0;
   font-size: 16px;
   font-weight: 600;
   color: var(--text-main);
@@ -116,6 +121,8 @@ button {
   cursor: pointer;
   user-select: none;
   transition: all 0.2s ease;
+  /* CRUCIAL: Stopt de iOS double-tap zoom op alle knoppen! */
+  touch-action: manipulation;
 }
 
 .btn-select {
@@ -143,6 +150,7 @@ button {
   font-size: 16px;
   font-weight: 700;
   box-shadow: 0 4px 12px rgba(30, 41, 59, 0.2);
+  margin-bottom: 10px;
 }
 .btn-primary:active {
   transform: scale(0.98);
@@ -151,12 +159,13 @@ button {
 .btn-secondary {
   width: 100%;
   background: transparent;
-  color: var(--text-muted);
+  color: var(--text-main);
   border: 1px solid var(--border-color);
   padding: 14px;
   border-radius: 12px;
   font-size: 15px;
   font-weight: 600;
+  background: white;
 }
 
 /* --- GAME SCREEN --- */
@@ -164,7 +173,7 @@ button {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  margin-bottom: 24px;
+  margin-bottom: 20px;
   background: white;
   padding: 12px;
   border-radius: 14px;
@@ -216,7 +225,7 @@ button {
 .scoring-list {
   display: flex;
   flex-direction: column;
-  gap: 12px;
+  gap: 10px;
 }
 .player-score-card {
   display: flex;
@@ -290,6 +299,7 @@ button {
   padding: 12px 16px;
   box-shadow: 0 -4px 20px rgba(0,0,0,0.1);
   backdrop-filter: blur(8px);
+  z-index: 10;
 }
 .mini-scoreboard {
   display: flex;
@@ -325,7 +335,7 @@ button {
   font-weight: 800;
 }
 
-/* --- RESULT SCREEN --- */
+/* --- RESULT & LEADERBOARD --- */
 .leaderboard {
   padding: 8px 0;
 }
@@ -383,10 +393,94 @@ button {
   gap: 10px;
 }
 
-/* --- TEXT HINT --- */
-.hint {
-  text-align: center;
-  font-size: 11px;
-  color: var(--text-muted);
-  margin-top: 12px;
+/* --- DETAILS TABLE MATRIX --- */
+.table-wrapper {
+  overflow-x: auto;
+  margin-top: 16px;
+  border-radius: 12px;
+  border: 1px solid var(--border-color);
+  background: white;
 }
+.matrix-table {
+  width: 100%;
+  border-collapse: collapse;
+  text-align: left;
+  font-size: 14px;
+}
+.matrix-table th, .matrix-table td {
+  padding: 10px 12px;
+  border-bottom: 1px solid var(--border-color);
+}
+.matrix-table th {
+  background: var(--bg-main);
+  font-weight: 700;
+}
+.matrix-table tr:last-child td {
+  border-bottom: none;
+}
+.matrix-table .row-total {
+  background: #f1f5f9;
+  font-weight: 800;
+}
+.matrix-table .row-total td {
+  font-size: 15px;
+}
+
+/* --- MODAL DIALOG (RULES) --- */
+.modal {
+  display: none;
+  position: fixed;
+  top: 0; left: 0; right: 0; bottom: 0;
+  background: rgba(15, 23, 42, 0.6);
+  backdrop-filter: blur(4px);
+  z-index: 100;
+  align-items: center;
+  justify-content: center;
+  padding: 16px;
+}
+.modal.open {
+  display: flex;
+}
+.modal-content {
+  background: white;
+  border-radius: 20px;
+  max-width: 450px;
+  width: 100%;
+  max-height: 80vh;
+  overflow-y: auto;
+  padding: 24px;
+  box-shadow: 0 20px 25px -5px rgba(0,0,0,0.1);
+}
+.modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 16px;
+  border-bottom: 1px solid var(--border-color);
+  padding-bottom: 10px;
+}
+.modal-header h3 { margin: 0; font-size: 20px; font-weight: 800; }
+.btn-close {
+  background: var(--bg-main);
+  border: none;
+  width: 32px; height: 32px;
+  border-radius: 50%;
+  font-size: 16px;
+  font-weight: 700;
+}
+.rules-body h4 {
+  margin: 14px 0 6px 0;
+  color: var(--primary);
+  font-size: 14px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+.rules-body p, .rules-body ul {
+  margin: 0 0 10px 0;
+  font-size: 14px;
+  line-height: 1.5;
+  color: #334155;
+  padding-left: 20px;
+}
+.rules-body ul { padding-left: 20px; }
+.rules-body li { margin-bottom: 4px; }
