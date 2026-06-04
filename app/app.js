@@ -14,17 +14,25 @@ let state = {
 
 let previousMode = "setup";
 
+// NU VOLLEDIG CORRECT: De echte 5 Cascadia leefgebieden (Rivieren ipv Woestijnen)
 const allCategories = [
-  { id: "bear", name: "Beren 🐻", color: "#b45309", icon: "🐻", isLandmark: false },
-  { id: "elk", name: "Edelherten 🦌", color: "#15803d", icon: "🦌", isLandmark: false },
-  { id: "salmon", name: "Zalmen 🐟", color: "#e11d48", icon: "🐟", isLandmark: false },
-  { id: "hawk", name: "Haviken 🦅", color: "#0369a1", icon: "🦅", isLandmark: false },
-  { id: "fox", name: "Vossen 🦊", color: "#ea580c", icon: "🦊", isLandmark: false },
-  { id: "terrain", name: "Leefgebieden 🌲", color: "#16a34a", icon: "🌲", isLandmark: false },
-  { id: "bonus", name: "Gebiedsbonussen 👑", color: "#d97706", icon: "👑", isLandmark: false },
-  { id: "nature", name: "Natuurfiches 🌲", color: "#0d9488", icon: "💧", isLandmark: false },
-  { id: "landmarks_cards", name: "Landmark Kaarten 🏛", color: "#854d0e", icon: "📜", isLandmark: true },
-  { id: "landmarks_tokens", name: "Landmark Fiches 🏛", color: "#a16207", icon: "🪙", isLandmark: true }
+  { id: "bear", name: "Beren", color: "#b45309", icon: "🐻", isLandmark: false },
+  { id: "elk", name: "Wapiti's", color: "#15803d", icon: "🦌", isLandmark: false },
+  { id: "salmon", name: "Zalmen", color: "#e11d48", icon: "🐟", isLandmark: false },
+  { id: "hawk", name: "Buizerds", color: "#0369a1", icon: "🦅", isLandmark: false },
+  { id: "fox", name: "Vossen", color: "#ea580c", icon: "🦊", isLandmark: false },
+  
+  // De 5 correcte leefgebieden
+  { id: "mountains", name: "Bergen", color: "#475569", icon: "🏔", isLandmark: false },
+  { id: "forests", name: "Bossen", color: "#16a34a", icon: "🌲", isLandmark: false },
+  { id: "prairies", name: "Prairies", color: "#ca8a04", icon: "🌾", isLandmark: false },
+  { id: "swamps", name: "Moerassen", color: "#059669", icon: "🌿", isLandmark: false },
+  { id: "rivers", name: "Rivieren", color: "#0284c7", icon: "💧", isLandmark: false },
+  
+  { id: "bonus", name: "Gebiedsbonussen", color: "#d97706", icon: "👑", isLandmark: false },
+  { id: "nature", name: "Natuurfiches", color: "#0d9488", icon: "🍃", isLandmark: false },
+  { id: "landmarks_cards", name: "Landmark Kaarten", color: "#854d0e", icon: "📜", isLandmark: true },
+  { id: "landmarks_tokens", name: "Landmark Fiches", color: "#a16207", icon: "🪙", isLandmark: true }
 ];
 
 let categories = [];
@@ -331,7 +339,6 @@ function updateMiniScoreboard() {
   const board = document.getElementById("mini-scoreboard");
   if (!board) return;
 
-  // HERSTELD: De mooie, originele horizontale scrolbare rij met badges
   const sorted = [...state.players].sort((a, b) => calculateTotal(b.name) - calculateTotal(a.name));
 
   board.innerHTML = `
@@ -352,7 +359,6 @@ function renderResult(app) {
 
   const winners = [...state.players].sort((a, b) => calculateTotal(b.name) - calculateTotal(a.name));
 
-  // HERSTELD: Het originele, prachtige eindscherm met de gouden kroon en overzichten
   app.innerHTML = `
     <div class="result-screen core-container">
       <header class="hero-header">
@@ -364,7 +370,6 @@ function renderResult(app) {
       <div class="leaderboard-stack">
         ${winners.map((p, index) => {
           if (index === 0) {
-            // De grote, prachtige winnaarskaart met kroon
             return `
               <div class="leaderboard-card winner" style="background: linear-gradient(135deg, #fef08a 0%, #fefcbf 100%); border: 2px solid #eab308; padding: 20px; border-radius: 16px; display: flex; align-items: center; justify-content: space-between; margin-bottom: 16px; box-shadow: 0 4px 6px -1px rgba(234, 179, 8, 0.2);">
                 <div style="display: flex; align-items: center; gap: 16px;">
@@ -378,7 +383,6 @@ function renderResult(app) {
               </div>
             `;
           } else {
-            // Strakke kaarten voor de overige spelers
             return `
               <div class="leaderboard-card" style="background: white; border: 1px solid var(--border-color); padding: 14px 16px; border-radius: 12px; display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px;">
                 <div style="display: flex; align-items: center; gap: 12px;">
@@ -407,7 +411,7 @@ function renderResult(app) {
             <tbody>
               ${categories.map(c => `
                 <tr style="border-bottom: 1px solid var(--border-color);">
-                  <td style="padding: 8px 4px; display: flex; align-items: center; gap: 4px;"><span>${c.icon}</span> <span>${c.name.split(" ")[0]}</span></td>
+                  <td style="padding: 8px 4px; display: flex; align-items: center; gap: 4px;"><span>${c.icon}</span> <span>${c.name}</span></td>
                   ${state.players.map(p => `<td style="padding: 8px 4px; text-align: right; font-weight: 500;">${getScore(p.name, c.id)}</td>`).join("")}
                 </tr>
               `).join("")}
