@@ -14,24 +14,38 @@
   -webkit-tap-highlight-color: transparent;
 }
 
-body {
+html, body {
   margin: 0;
+  padding: 0;
+  width: 100%;
+  height: 100%;
+  overflow-x: hidden; /* Voorkomt dat je zijwaarts kunt scrollen */
+}
+
+body {
   font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
   background: var(--bg-main);
   color: var(--text-main);
-  padding-bottom: 90px;
+  /* De 90px padding-bottom is verplaatst naar .core-container voor een betere layout */
 }
 
 .core-container {
-  padding-top: 20px; /* Geeft wat lucht aan de bovenkant */
-  padding-bottom: 20px;
-  box-sizing: border-box; /* Zorgt dat padding niet de layout opblaast */
+  width: 100%;
+  box-sizing: border-box;
+  padding: 20px; /* Dit fikst je linker- en rechtermarges */
+  
+  /* Houdt rekening met de iPhone notch (boven) en thuisbalk/footer (onder) */
+  padding-top: calc(20px + env(safe-area-inset-top));
+  padding-bottom: calc(90px + env(safe-area-inset-bottom));
+  
   min-height: 100vh;
+  position: relative; /* Cruciaal: houdt de zwevende knop binnen de grenzen */
 }
 
 /* Breedbeeld-overide voor het resultatenscherm als de tabel getoond wordt */
 .core-container.wide {
   max-width: 800px;
+  margin: 0 auto; /* Zorgt dat hij op desktop netjes in het midden staat */
 }
 
 /* --- HERO HEADER --- */
@@ -297,7 +311,8 @@ button {
   left: 0;
   right: 0;
   background: #1e293b; /* Donkerblauw */
-  padding: 10px 16px;
+  /* Houdt rekening met de veilige zone aan de onderkant voor iPhones */
+  padding: 10px 16px calc(10px + env(safe-area-inset-bottom)) 16px;
   box-shadow: 0 -2px 10px rgba(0,0,0,0.2);
   z-index: 1000;
   display: flex;
@@ -492,7 +507,8 @@ button {
 /* Zwevende tandwiel/info knop op het setup scherm */
 .btn-info-floating {
   position: absolute;
-  top: 20px;
+  /* Zakt mee met de veilige zone bovenin */
+  top: calc(20px + env(safe-area-inset-top)); 
   right: 20px;
   background: white;
   border: 1px solid var(--border-color);
@@ -505,6 +521,7 @@ button {
   justify-content: center;
   box-shadow: 0 2px 4px rgba(0,0,0,0.05);
   z-index: 10;
+  cursor: pointer;
 }
 .btn-info-floating:active {
   transform: scale(0.9);
@@ -557,7 +574,7 @@ button {
 input:checked + .slider-toggle { background-color: #14532d; }
 input:checked + .slider-toggle:before { transform: translateX(22px); }
 
-/* Dynamische Buttons (gebruiken category-color uit root) */
+/* Dynamische Buttons */
 .btn-dynamic { background: var(--category-color); box-shadow: none; margin-bottom: 0; }
 .btn-dynamic-flex { flex: 1; }
 .btn-full-reset { width: 100%; padding: 16px; border-radius: 12px; }
@@ -578,7 +595,7 @@ input:checked + .slider-toggle:before { transform: translateX(22px); }
 .leaderboard-score { font-size: 18px; font-weight: 700; color: var(--text-main); }
 .leaderboard-score span { font-size: 12px; font-weight: 400; color: var(--text-muted); }
 
-/* Resultaten Tabel (Geïntegreerd met je matrix-table) */
+/* Resultaten Tabel */
 .result-details-card { margin-top: 24px; padding: 16px; background: white; border-radius: 16px; border: 1px solid var(--border-color); }
 .result-details-card .section-label { font-weight: 700; font-size: 13px; text-transform: uppercase; letter-spacing: 0.05em; color: var(--text-muted); margin-bottom: 12px; }
 
