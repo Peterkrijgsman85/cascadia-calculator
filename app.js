@@ -313,11 +313,16 @@ function render() {
 }
 
 function renderSetup(app) {
-  // Bepaal of we op iOS zitten
+  // 1. Bepaal het device type
   const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
   
-  // Toon banner als installatie mogelijk is (Android) OF als het iOS is (voor instructie)
-  const showBanner = deferredPrompt || isIOS;
+  // 2. Check of de app al als 'App' draait (geen browser-balk zichtbaar)
+  const isStandalone = window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone === true;
+
+  // 3. Toon de banner alleen als:
+  // - We NIET in standalone modus draaien (want dan is de app al geïnstalleerd)
+  // - EN we ofwel een install-prompt hebben (Android) OF we op iOS zitten
+  const showBanner = !isStandalone && (deferredPrompt || isIOS);
 
   app.innerHTML = `
     <div class="setup-screen core-container">
