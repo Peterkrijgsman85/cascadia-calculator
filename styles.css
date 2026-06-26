@@ -23,9 +23,10 @@ body {
 }
 
 .core-container {
-  padding: 20px 16px;
-  max-width: 500px;
-  margin: 0 auto;
+  padding-top: 20px; /* Geeft wat lucht aan de bovenkant */
+  padding-bottom: 20px;
+  box-sizing: border-box; /* Zorgt dat padding niet de layout opblaast */
+  min-height: 100vh;
 }
 
 /* Breedbeeld-overide voor het resultatenscherm als de tabel getoond wordt */
@@ -37,6 +38,7 @@ body {
 .hero-header {
   text-align: center;
   margin-bottom: 24px;
+  margin-top: 0;
 }
 .hero-icon {
   font-size: 44px;
@@ -490,8 +492,8 @@ button {
 /* Zwevende tandwiel/info knop op het setup scherm */
 .btn-info-floating {
   position: absolute;
-  top: 4px;
-  right: 16px;
+  top: 20px;
+  right: 20px;
   background: white;
   border: 1px solid var(--border-color);
   width: 40px;
@@ -502,7 +504,7 @@ button {
   align-items: center;
   justify-content: center;
   box-shadow: 0 2px 4px rgba(0,0,0,0.05);
-  z-index: 5;
+  z-index: 10;
 }
 .btn-info-floating:active {
   transform: scale(0.9);
