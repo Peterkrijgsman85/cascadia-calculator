@@ -29,6 +29,36 @@ body {
   /* De 90px padding-bottom is verplaatst naar .core-container voor een betere layout */
 }
 
+/* --- APP FEEL: VERBERG SCROLLBALKEN --- */
+* {
+  scrollbar-width: none; /* Firefox */
+  -ms-overflow-style: none; /* IE/Edge */
+}
+*::-webkit-scrollbar {
+  display: none; /* Chrome, Safari, iOS */
+}
+
+/* --- GAME SCREEN SLIDER --- */
+.slider-viewport {
+  width: 100%;
+  overflow: hidden; /* Verbergt de andere schermen buiten beeld */
+  touch-action: pan-y; /* Voorkomt per ongeluk refreshen/swipen op paginaniveau in Chrome */
+  position: relative;
+  margin-bottom: 20px;
+}
+
+.slider-track {
+  display: flex;
+  width: 100%;
+  will-change: transform; /* Hint voor de telefoon voor extra vloeiende animaties */
+  /* De transitie wordt via JavaScript bestuurd tijdens het swipen */
+}
+
+.slider-slide {
+  flex: 0 0 100%; /* Elke slide is precies 100% breed */
+  width: 100%;
+}
+
 .core-container {
   width: 100%;
   box-sizing: border-box;

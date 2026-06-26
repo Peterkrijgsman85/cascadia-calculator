@@ -136,7 +136,8 @@ function prev() {
   if (state.step > 0) {
     state.step--;
     saveState();
-    render();
+    if (state.mode === "game") updateGameUI(); // Schuif slider
+    else render();
   }
 }
 
@@ -144,9 +145,10 @@ function next() {
   if (state.step < categories.length - 1) {
     state.step++;
     saveState();
-    render();
+    if (state.mode === "game") updateGameUI(); // Schuif slider
+    else render();
   } else {
-    calculateAreaBonuses(); // Automatische berekening triggeren voor de einduitslag
+    calculateAreaBonuses();
     state.mode = "result";
     saveState();
     render();
@@ -239,9 +241,8 @@ function getScore(playerName, catId) {
 }
 
 function adjustScore(playerName, catId, amount) {
-  if (!state.scores[playerName]) {
-    state.scores[playerName] = {};
-  }
+  if (!state.scores[playerName]) state.scores[playerName] = {};
+  
   let current = state.scores[playerName][catId] || 0;
   let newScore = current + amount;
   if (newScore < 0) newScore = 0;
@@ -250,6 +251,9 @@ function adjustScore(playerName, catId, amount) {
   
   const element = document.getElementById(`score-${playerName}-${catId}`);
   if (element) element.innerText = newScore;
+
+  // MICRO-INTERACTIE: Haptic Feedback (trillen) voor de echte app-ervaring op Android
+  if (navigator.vibrate) navigator.vibrate(15); 
 
   saveState();
   updateMiniScoreboard();
@@ -266,23 +270,68 @@ function calculateTotal(playerName) {
 }
 
 /* ---------------- SWIPE GESTURES ---------------- */
-let touchStartX = 0;
-let touchEndX = 0;
+/* ---------------- SWIPE GESTURES (NATIVE TRACKING) ---------------- */
+let startX = 0;
+let currentX = 0;
+let startY = 0;
+let isDragging = false;
+let isVerticalScroll = false;
 
 function handleTouchStart(e) {
-  touchStartX = e.changedTouches[0].screenX;
+  startX = e.touches[0].clientX;
+  startY = e.touches[0].clientY;
+  isDragging = true;
+  isVerticalScroll = false;
+  
+  const track = document.getElementById('slider-track');
+  if (track) track.style.transition = 'none'; // Koppel CSS animatie los zodat hij exact je vinger volgt
+}
+
+function handleTouchMove(e) {
+  if (!isDragging) return;
+  const x = e.touches[0].clientX;
+  const y = e.touches[0].clientY;
+  const diffX = x - startX;
+  const diffY = y - startY;
+
+  // Is de gebruiker eigenlijk gewoon naar beneden aan het scrollen in de lijst?
+  if (!isVerticalScroll && Math.abs(diffY) > 5 && Math.abs(diffY) > Math.abs(diffX)) {
+    isVerticalScroll = true; // Zo ja, negeer de horizontale swipe!
+  }
+
+  if (isVerticalScroll) return; // Laat de browser rustig verticaal scrollen
+
+  // Als we hier zijn, is het een echte swipe: blokkeer pagina-bounce
+  if (e.cancelable) e.preventDefault(); 
+  currentX = diffX;
+
+  const track = document.getElementById('slider-track');
+  if (track) {
+    // Schuif de baan mee met de vinger van de speler
+    const baseOffset = -(state.step * track.clientWidth);
+    track.style.transform = `translateX(${baseOffset + currentX}px)`;
+  }
 }
 
 function handleTouchEnd(e) {
-  touchEndX = e.changedTouches[0].screenX;
-  const diff = touchStartX - touchEndX;
+  if (!isDragging) return;
+  isDragging = false;
+  
+  if (isVerticalScroll) {
+    updateGameUI(); // Mocht de track iets verschoven zijn, klik hem terug
+    return;
+  }
 
-  if (diff > 80) {
+  const swipeThreshold = 60; // Hoeveel pixels moet je vegen om te activeren?
+  if (currentX < -swipeThreshold && state.step < categories.length - 1) {
     next();
-  }
-  if (diff < -80) {
+  } else if (currentX > swipeThreshold && state.step > 0) {
     prev();
+  } else {
+    updateGameUI(); // Te kort geveegd? Snap terug naar huidig scherm
   }
+  
+  currentX = 0;
 }
 
 /* ---------------- UI RENDERING ---------------- */
@@ -290,25 +339,14 @@ function render() {
   const app = document.getElementById("app");
   if (!app) return;
 
-  app.ontouchstart = null;
-  app.ontouchend = null;
   app.className = "";
+  // Globale onTouch is hier weggehaald! Dat was foutgevoelig, zit nu in renderGame.
 
   switch (state.mode) {
-    case "setup":
-      renderSetup(app);
-      break;
-    case "game":
-      renderGame(app);
-      app.ontouchstart = handleTouchStart;
-      app.ontouchend = handleTouchEnd;
-      break;
-    case "result":
-      renderResult(app);
-      break;
-    case "rules":
-      renderRulesScreen(app);
-      break;
+    case "setup": renderSetup(app); break;
+    case "game": renderGame(app); break;
+    case "result": renderResult(app); break;
+    case "rules": renderRulesScreen(app); break;
   }
 }
 
@@ -399,45 +437,53 @@ function renderSetup(app) {
 }
 
 function renderGame(app) {
-  const c = categories[state.step];
-  document.documentElement.style.setProperty('--category-color', c.color);
-  const quickAmt = c.quickAdd || 5;
+  // Bouw in één keer alle categorie-kaarten naast elkaar (onzichtbaar behalve de eerste)
+  const slidesHTML = categories.map(c => {
+    const quickAmt = c.quickAdd || 5;
+    return `
+      <div class="slider-slide">
+        <div class="scoring-list">
+          ${state.players.map(p => {
+            const currentScore = getScore(p.name, c.id);
+            return `
+              <div class="player-score-card" style="border-left-color: ${c.color}">
+                <span class="player-name">${p.name}</span>
+                <div class="stepper-control">
+                  <button class="btn-step" onclick="adjustScore('${p.name}', '${c.id}', -1)">−</button>
+                  <div class="score-display-wrapper" onclick="adjustScore('${p.name}', '${c.id}', ${quickAmt})">
+                    <span class="score-value" id="score-${p.name}-${c.id}">${currentScore}</span>
+                    <span class="tap-hint" style="color: ${c.color}">+${quickAmt}</span>
+                  </div>
+                  <button class="btn-step" onclick="adjustScore('${p.name}', '${c.id}', 1)">+</button>
+                </div>
+              </div>
+            `;
+          }).join("")}
+        </div>
+      </div>
+    `;
+  }).join("");
 
   app.innerHTML = `
     <div class="game-screen core-container">
       <header class="step-header">
-        <button class="btn-back" onclick="prev()" ${state.step === 0 ? 'disabled' : ''}>←</button>
+        <button class="btn-back" id="game-btn-prev" onclick="prev()">←</button>
         <div class="step-title">
-          <span class="cat-badge">${c.icon}</span>
-          <h2>${c.name}</h2>
-          <span class="step-counter">${state.step + 1} / ${categories.length}</span>
+          <span class="cat-badge" id="game-cat-icon"></span>
+          <h2 id="game-cat-name"></h2>
+          <span class="step-counter"><span id="game-step-counter"></span> / ${categories.length}</span>
         </div>
         <div class="header-spacer"></div>
       </header>
 
-      <div class="scoring-list">
-        ${state.players.map(p => {
-          const currentScore = getScore(p.name, c.id);
-          return `
-            <div class="player-score-card">
-              <span class="player-name">${p.name}</span>
-              <div class="stepper-control">
-                <button class="btn-step" onclick="adjustScore('${p.name}', '${c.id}', -1)">−</button>
-                <div class="score-display-wrapper" onclick="adjustScore('${p.name}', '${c.id}', ${quickAmt})">
-                  <span class="score-value" id="score-${p.name}-${c.id}">${currentScore}</span>
-                  <span class="tap-hint">+${quickAmt}</span>
-                </div>
-                <button class="btn-step" onclick="adjustScore('${p.name}', '${c.id}', 1)">+</button>
-              </div>
-            </div>
-          `;
-        }).join("")}
+      <div class="slider-viewport" id="slider-viewport">
+        <div class="slider-track" id="slider-track">
+          ${slidesHTML}
+        </div>
       </div>
 
       <div class="game-action-row">
-        <button class="btn-primary btn-dynamic btn-dynamic-flex" onclick="next()">
-          ${state.step === categories.length - 1 ? 'Bekijk Einduitslag 🏆' : 'Volgende Categorie →'}
-        </button>
+        <button class="btn-primary btn-dynamic btn-dynamic-flex" id="game-btn-next" onclick="next()"></button>
         <button class="btn-reset-inline" onclick="resetGame()" title="Spel resetten">🗑️</button>
       </div>
 
@@ -447,7 +493,48 @@ function renderGame(app) {
     </div>
   `;
   
+  // Koppel de vinger-tracker specifiek en alleen aan het slider blok!
+  const viewport = document.getElementById('slider-viewport');
+  viewport.addEventListener('touchstart', handleTouchStart, {passive: true});
+  viewport.addEventListener('touchmove', handleTouchMove, {passive: false});
+  viewport.addEventListener('touchend', handleTouchEnd, {passive: true});
+
+  // Positioneer de track direct goed
+  updateGameUI(true);
   updateMiniScoreboard();
+}
+
+function updateGameUI(isInit = false) {
+  if (state.mode !== "game") return;
+  
+  const c = categories[state.step];
+  
+  // Update knop & achtergrond kleuren
+  document.documentElement.style.setProperty('--category-color', c.color);
+
+  // Update de Header data zonder HTML te vernietigen
+  document.getElementById('game-cat-icon').innerText = c.icon;
+  document.getElementById('game-cat-name').innerText = c.name;
+  document.getElementById('game-step-counter').innerText = state.step + 1;
+
+  // Update de knoppen
+  document.getElementById('game-btn-prev').disabled = (state.step === 0);
+  const btnNext = document.getElementById('game-btn-next');
+  if (state.step === categories.length - 1) {
+    btnNext.innerText = 'Bekijk Einduitslag 🏆';
+  } else {
+    btnNext.innerText = 'Volgende Categorie →';
+  }
+
+  // Schuif de carrousel animatie
+  const track = document.getElementById('slider-track');
+  if (track) {
+    if (!isInit) {
+       // Maak de transitie boterzacht als we dit via een knop-klik doen
+       track.style.transition = 'transform 0.3s cubic-bezier(0.25, 1, 0.5, 1)';
+    }
+    track.style.transform = `translateX(-${state.step * 100}%)`;
+  }
 }
 
 function updateMiniScoreboard() {
