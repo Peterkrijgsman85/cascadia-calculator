@@ -13,530 +13,134 @@
     <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext y='.88em' font-size='85'%3E%F0%9F%8F%94%3C/text%3E%3C/svg%3E">
 
     <style>
+        /* CSS Variabelen */
         :root {
-            --primary: #1e293b;
-            --accent: #2d6a4f;
-            --accent-light: #d8f3dc;
-            --bg: #f4f7f6;
-            --border: #cbd5e1;
+            --bg-main: #f4f7f6;
+            --text-main: #1e293b;
+            --text-muted: #64748b;
+            --border-color: #cbd5e1;
+            --category-color: #14532d; /* Wordt door JS overschreven per dier/gebied */
             --card-bg: #ffffff;
         }
 
+        /* Basis Reset */
         body { 
-            font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; 
-            background-color: var(--bg); 
-            color: var(--primary); 
-            display: flex;
-            flex-direction: column;
-            align-items: center;
+            font-family: system-ui, -apple-system, sans-serif; 
+            background-color: var(--bg-main); 
+            color: var(--text-main); 
+            margin: 0; 
             padding: 0;
-            margin: 0;
-            width: 100vw;
-            overflow-x: hidden;
             -webkit-tap-highlight-color: transparent;
         }
 
+        /* DE DESKTOP FIX: 
+           Op mobiel pakt dit 100% breedte, op desktop centreert het als een app-scherm
+        */
+        .core-container {
+            width: 100%;
+            min-height: 100vh;
+            box-sizing: border-box;
+            padding: calc(20px + env(safe-area-inset-top)) 15px calc(80px + env(safe-area-inset-bottom)) 15px;
+            margin: 0 auto;
+        }
+
+        @media (min-width: 768px) {
+            .core-container {
+                max-width: 800px;
+                min-height: auto;
+                margin: 40px auto;
+                background: var(--card-bg);
+                border-radius: 20px;
+                box-shadow: 0 10px 30px rgba(0,0,0,0.05);
+                padding: 40px;
+            }
+        }
+
+        /* Typografie & Headers */
+        .hero-header, .step-header { text-align: center; margin-bottom: 30px; position: relative; }
+        .hero-icon { font-size: 3rem; display: block; margin-bottom: 10px; }
+        h1, h2 { margin: 0; color: var(--text-main); }
+        .subtitle { color: var(--text-muted); margin-top: 5px; font-size: 0.9rem; font-weight: 500; text-transform: uppercase; letter-spacing: 1px; }
+        
+        /* Layout Elementen */
         .card { 
             background: var(--card-bg); 
-            padding: 20px 15px; 
-            width: 100%;
-            box-sizing: border-box;
-            margin-top: env(safe-area-inset-top, 0px);
-            padding-left: calc(15px + env(safe-area-inset-left, 0px));
-            padding-right: calc(15px + env(safe-area-inset-right, 0px));
+            border: 1px solid var(--border-color); 
+            border-radius: 16px; 
+            padding: 20px; 
+            margin-bottom: 16px; 
         }
+        .section-label { display: block; font-weight: 700; color: var(--text-main); margin-bottom: 12px; font-size: 1rem; }
 
-        h1 { text-align: center; color: var(--accent); margin-bottom: 4px; margin-top: 10px; font-size: 1.8rem; font-weight: 800; }
-        .subtitle { text-align: center; color: #64748b; margin-bottom: 25px; font-size: 0.9rem; }
+        /* Setup Scherm Specifiek */
+        .player-selector-grid { display: flex; gap: 10px; flex-wrap: wrap; }
+        .btn-select { 
+            flex: 1; min-width: 45px; padding: 12px; background: var(--bg-main); 
+            border: 1px solid var(--border-color); border-radius: 10px; 
+            font-weight: 600; cursor: pointer; transition: 0.2s; color: var(--text-main);
+        }
+        .btn-select.active { background: var(--text-main); color: white; border-color: var(--text-main); }
         
-        /* Setup modernisering */
-        .setup { 
-            background: #f8fafc;
-            padding: 15px;
-            border-radius: 12px;
-            margin-bottom: 25px;
-            border: 1px solid #e2e8f0;
-            display: flex;
-            justify-content: center;
-            gap: 24px;
-            flex-wrap: wrap;
-            align-items: center;
-        }
+        .inputs-stack { display: flex; flex-direction: column; gap: 10px; }
+        .input-group { display: flex; align-items: center; gap: 12px; background: var(--bg-main); padding: 8px 12px; border-radius: 10px; }
+        .input-number { font-weight: 800; color: var(--text-muted); font-size: 0.9rem; }
+        input[type="text"] { flex: 1; border: none; background: transparent; font-size: 1rem; font-weight: 600; outline: none; color: var(--text-main); }
 
-        .setup label { font-weight: 600; font-size: 0.95rem; }
-        
-        select {
-            padding: 8px 12px;
-            border-radius: 8px;
-            border: 1px solid var(--border);
-            background: white;
-            font-size: 0.95rem;
-            color: var(--primary);
-            outline: none;
+        /* Knoppen */
+        .btn-primary { 
+            width: 100%; padding: 16px; background: var(--text-main); color: white; 
+            border: none; border-radius: 12px; font-size: 1.1rem; font-weight: 700; 
+            cursor: pointer; margin-top: 20px; transition: background 0.3s ease;
         }
+        .btn-info-floating { position: absolute; top: 15px; right: 15px; background: none; border: none; font-size: 1.5rem; cursor: pointer; }
+        .btn-back { background: none; border: none; font-size: 1.5rem; color: var(--text-muted); cursor: pointer; padding: 10px; }
+        .btn-reset-inline { background: #fee2e2; border: 1px solid #fca5a5; border-radius: 12px; padding: 0 20px; font-size: 1.2rem; cursor: pointer; }
 
-        /* Grotere checkbox klik-regio voor mobiel */
-        .checkbox-container {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            cursor: pointer;
-            user-select: none;
-        }
-        .checkbox-container input { width: 18px; height: 18px; accent-color: var(--accent); }
+        /* Game Scherm Specifiek */
+        .step-header { display: flex; align-items: center; justify-content: space-between; }
+        .cat-badge { font-size: 2rem; display: block; }
+        .step-counter { font-size: 0.8rem; font-weight: 700; color: var(--text-muted); background: var(--bg-main); padding: 4px 10px; border-radius: 20px; display: inline-block; margin-top: 5px; }
 
-        .table-responsive {
-            width: 100%;
-            overflow-x: auto;
-            -webkit-overflow-scrolling: touch;
-            border-radius: 12px;
-            border: 1px solid var(--border);
-            margin-bottom: 20px;
-            box-shadow: 0 1px 3px rgba(0,0,0,0.02);
-        }
-
-        .score-table { 
+        /* DE TWEEDE DESKTOP FIX: Grid layout voor de spelers-kaartjes */
+        .scoring-list { 
             display: grid; 
-            gap: 1px; 
-            background-color: var(--border);
-            width: 100%;
+            grid-template-columns: 1fr; 
+            gap: 12px; 
+        }
+        @media (min-width: 600px) {
+            .scoring-list { grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); }
         }
 
-        .cell { background: white; padding: 10px; display: flex; align-items: center; justify-content: center; }
-        .header-cell { background: #f8fafc; font-weight: 700; text-transform: uppercase; font-size: 0.75rem; color: #475569; border-bottom: 2px solid var(--border); }
+        .player-score-card { 
+            background: var(--card-bg); border: 2px solid var(--bg-main); 
+            border-radius: 16px; padding: 16px; display: flex; 
+            align-items: center; justify-content: space-between;
+        }
+        .player-name { font-weight: 700; font-size: 1.1rem; }
         
-        .section-header { 
-            background: #edf2f7; 
-            font-weight: 700; 
-            grid-column: 1 / -1; 
-            justify-content: flex-start; 
-            padding-left: 15px; 
-            font-size: 0.85rem; 
-            color: var(--accent);
-            letter-spacing: 0.05em;
-        }
+        .stepper-control { display: flex; align-items: center; gap: 12px; background: var(--bg-main); padding: 6px; border-radius: 12px; }
+        .btn-step { width: 36px; height: 36px; border-radius: 8px; border: none; background: white; font-size: 1.2rem; font-weight: bold; cursor: pointer; color: var(--text-main); box-shadow: 0 2px 4px rgba(0,0,0,0.05); }
+        .score-display-wrapper { text-align: center; min-width: 50px; cursor: pointer; user-select: none; }
+        .score-value { display: block; font-size: 1.4rem; font-weight: 800; color: var(--category-color); }
+        .tap-hint { display: block; font-size: 0.7rem; color: var(--text-muted); font-weight: 700; }
+
+        /* Mini Scoreboard onderaan */
+        .game-footer { position: fixed; bottom: 0; left: 0; right: 0; background: var(--card-bg); border-top: 1px solid var(--border-color); padding: 10px calc(15px + env(safe-area-inset-left)); z-index: 10; box-shadow: 0 -4px 15px rgba(0,0,0,0.05); }
         
-        .label-cell { justify-content: flex-start; font-weight: 600; font-size: 0.9rem; background: #fcfdfd; min-width: 145px; }
-
-        /* Verbeterde mobiele input velden */
-        input[type="number"] {
-            width: 60px;
-            padding: 10px 4px;
-            border: 1px solid #cbd5e1;
-            border-radius: 6px;
-            text-align: center;
-            font-size: 1.05rem;
-            font-weight: 500;
-            outline-color: var(--accent);
-            -moz-appearance: textfield;
-        }
-        input[type="number"]::-webkit-outer-spin-button,
-        input[type="number"]::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
-
-        .name-input {
-            width: 90%;
-            border: none;
-            background: transparent;
-            text-align: center;
-            font-weight: 700;
-            font-size: 0.8rem;
-            color: var(--primary);
-            text-transform: uppercase;
-            border-bottom: 2px dashed #cbd5e1;
-            padding: 4px 0;
-        }
-        .name-input:focus { outline: none; border-bottom: 2px solid var(--accent); }
-
-        .bonus-input { background-color: #f0fdf4; border-color: #bbf7d0 !important; font-weight: 700; color: var(--accent); pointer-events: none; }
-        
-        /* Sticky/Vaste Totaalbalk voor mobiel */
-        .mobile-totals {
-            position: fixed;
-            bottom: 0;
-            left: 0;
-            right: 0;
-            background: #1e293b;
-            color: white;
-            display: flex;
-            justify-content: space-around;
-            padding: 12px 10px calc(12px + env(safe-area-inset-bottom, 0px)) 10px;
-            box-shadow: 0 -4px 15px rgba(0,0,0,0.15);
-            z-index: 100;
-            border-top-left-radius: 16px;
-            border-top-right-radius: 16px;
-        }
-        .total-bubble { text-align: center; flex: 1; }
-        .total-bubble .name { font-size: 0.7rem; opacity: 0.8; text-transform: uppercase; font-weight: 600; display: block; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 75px; margin: 0 auto; }
-        .total-bubble .score { font-size: 1.2rem; font-weight: 800; color: #4ade80; }
-
-        /* Tabel totalen (Desktop/back-up) */
-        .total-label { background: #1e293b; color: white; font-weight: 700; }
-        .total-cell { background: #1e293b; color: white; }
-        .total-cell input { background: transparent; border: none; color: #4ade80; font-weight: 800; pointer-events: none; width: 100%; text-align: center; font-size: 1.1rem; }
-
-        .btn-reset { margin-top: 15px; width: 100%; padding: 16px; background: #fea3a3; color: #991b1b; border: 1px solid #fca5a5; border-radius: 10px; font-weight: 700; cursor: pointer; font-size: 0.95rem; transition: background 0.2s; }
-        .btn-reset:active { background: #fca5a5; }
-
-        .orientation-tip {
-            display: none;
-            background: #f0fdfa;
-            color: #0d9488;
-            padding: 10px;
-            border-radius: 8px;
-            margin-bottom: 20px;
-            font-size: 0.85rem;
-            text-align: center;
-            border: 1px solid #ccfbf1;
+        @media (min-width: 768px) {
+            .game-footer { position: static; background: transparent; border: none; box-shadow: none; padding: 20px 0 0 0; }
         }
 
-        @media (max-width: 768px) {
-            .orientation-tip { display: block; }
-            .card { margin-bottom: 80px; } /* Ruimte voor de sticky balk */
-        }
-
-        /* Regels & Layout */
-        .rules-container { 
-            width: 100%; 
-            background: white; 
-            padding: 30px 15px calc(40px + env(safe-area-inset-bottom, 0px)) 15px; 
-            box-sizing: border-box; 
-            line-height: 1.6; 
-        }
-        .rules-container h2 { color: var(--primary); border-bottom: 2px solid var(--accent); padding-bottom: 8px; margin-top: 0; font-size: 1.4rem; font-weight: 800; }
-        .rules-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 25px; margin-top: 20px; }
-        .rule-box { background: #f8fafc; padding: 15px; border-radius: 10px; border: 1px solid #e2e8f0; }
-        .rule-box h3 { margin-top: 0; color: var(--accent); font-size: 1.05rem; border-bottom: 1px solid #cbd5e1; padding-bottom: 5px; font-weight: 700; }
-        .rule-box ul { padding-left: 20px; margin: 10px 0 0 0; }
-        .rule-box li { margin-bottom: 6px; font-size: 0.88rem; color: #334155; }
-        .landmark-badge { background: #eef2ff; color: #4338ca; padding: 2px 6px; border-radius: 4px; font-size: 0.7rem; font-weight: bold; text-transform: uppercase; }
-
-        @media (min-width: 769px) {
-            body { padding: 20px; }
-            .card { 
-                border-radius: 16px; 
-                box-shadow: 0 4px 20px rgba(0,0,0,0.04); 
-                max-width: 1020px; 
-                padding: 30px;
-                margin-bottom: 25px;
-            }
-            .mobile-totals { display: none; } /* Verberg zwevende balk op desktop */
-            .rules-container { 
-                max-width: 1020px; 
-                border-radius: 16px; 
-                border: 1px solid var(--border); 
-                padding: 30px;
-                margin-bottom: 20px;
-            }
-        }
+        /* Resultaten & Rules */
+        .leaderboard-stack { display: flex; flex-direction: column; gap: 10px; }
+        .result-table th, .result-table td { padding: 10px 6px; }
+        .rules-scroll-area { max-height: 70vh; overflow-y: auto; padding-right: 10px; }
     </style>
 </head>
 <body>
 
-<div class="card">
-    <h1>Cascadia Calculator</h1>
-    <p class="subtitle">Officiële Nederlandse Puntentelling</p>
+    <div id="app"></div>
 
-    <div class="orientation-tip">
-        📱 <strong>Tip:</strong> Kantel je scherm bij veel spelers om alles makkelijk te overzien.
-    </div>
-
-    <div class="setup">
-        <div>
-            <label for="playerCount">Spelers: </label>
-            <select id="playerCount" onchange="changePlayerCount()">
-                <option value="2">2 Spelers</option>
-                <option value="3">3 Spelers</option>
-                <option value="4">4 Spelers</option>
-                <option value="5">5 Spelers</option>
-                <option value="6">6 Spelers</option>
-            </select>
-        </div>
-        <div class="checkbox-container" onclick="toggleLandmarksFromLabel(event)">
-            <input type="checkbox" id="useLandmarks" onchange="toggleLandmarks()">
-            <label for="useLandmarks"><strong>Landmarks Uitbreiding</strong></label>
-        </div>
-    </div>
-
-    <div class="table-responsive">
-        <div id="scoreTable" class="score-table"></div>
-    </div>
-
-    <button class="btn-reset" onclick="resetScores()">Reset Alle Scores</button>
-</div>
-
-<div id="mobileTotals" class="mobile-totals"></div>
-
-<div class="rules-container">
-    <h2>Spelregels &amp; Scoreverloop</h2>
-    <div class="rules-grid">
-        <div class="rule-box">
-            <h3>⚙️ Setup: Tegels wegleggen</h3>
-            <ul>
-                <li><strong>2 spelers:</strong> Verwijder 43 tegels (speel met 42).</li>
-                <li><strong>3 spelers:</strong> Verwijder 22 tegels (speel met 63).</li>
-                <li><strong>4 spelers:</strong> Gebruik alle 85 tegels (basisspel).</li>
-                <li><strong>5-6 spelers:</strong> Gebruik alle tegels inclusief uitbreiding.</li>
-            </ul>
-        </div>
-        <div class="rule-box">
-            <h3>🐻 Wildlife &amp; Gebieden</h3>
-            <ul>
-                <li><strong>Dierkaarten:</strong> Vul het behaalde puntenaantal per diersoort in volgens de gebruikte scorekaart.</li>
-                <li><strong>Grootste Gebied:</strong> Tel de tegels van je grootste aaneengesloten groep per terreintype. Elke tegel = 1 punt.</li>
-                <li><strong>Bonussen:</strong> Grootste krijgt +3, tweede +1 (bij 3-6 spelers). Bij 2 spelers krijgt de grootste +2 (geen tweede plek bonus).</li>
-            </ul>
-        </div>
-        <div class="rule-box">
-            <h3>🏛 Landmarks <span class="landmark-badge">Uitbreiding</span></h3>
-            <ul>
-                <li><strong>Landmarkkaarten:</strong> Leg willekeurig 1 kaart per leefgebiedtype open (altijd 5 kaarten in totaal).</li>
-                <li><strong>Houten fiches in voorraad:</strong> 
-                    <ul>
-                        <li>1-2 spelers: 2 fiches per type.</li>
-                        <li>3 spelers: 3 fiches per type.</li>
-                        <li>4 spelers: 4 fiches per type.</li>
-                        <li>5-6 spelers: Alle fiches.</li>
-                    </ul>
-                </li>
-                <li><strong>Plaatsen:</strong> Zodra je een leefgebied van <strong>&ge; 5 tegels</strong> groot maakt, mag je direct (vrijwillig) een landmark-fiche van dat type pakken. Je mag daarna op die tegel geen dieren meer plaatsen.</li>
-                <li><strong>Fiches / Kaarten:</strong> Vul apart de fysieke fiche-punten én de bonuspunten van de kaarten in.</li>
-            </ul>
-        </div>
-        <div class="rule-box">
-            <h3>🌲 Natuurfiches &amp; Winst</h3>
-            <ul>
-                <li><strong>Natuurfiches:</strong> Elk ongebruikt natuurfiche aan het einde is <strong>1 punt</strong> waard.</li>
-                <li><strong>Tie-break:</strong> Bij een gelijkspel wint de speler met de <strong>meeste natuurfiches</strong>.</li>
-            </ul>
-        </div>
-        <div class="rule-box">
-            <h3>🏆 Eindstand & Gelijkspel</h3>
-            <ul>
-                <li><strong>Totaal:</strong> De som van alle dieren, gebieden, bonussen en natuurfiches.</li>
-                <li><strong>Tie-break:</strong> Bij een gelijkspel wint de speler met de <strong>meeste natuurfiches</strong>.</li>
-                <li>Is het dan nog gelijk? Dan delen de spelers de overwinning.</li>
-            </ul>
-        </div>
-    </div>
-</div>
-
-<script>
-    const wildlife = [
-        { id: 'bear', name: '🐻 Beren' },
-        { id: 'elk', name: '🦌 Wapiti\'s' },
-        { id: 'hawk', name: '🦅 Buizerds' },
-        { id: 'fox', name: '🦊 Vossen' },
-        { id: 'salmon', name: '🐟 Zalmen' }
-    ];
-
-    const habitats = [
-        { id: 'mtn', name: '🏔 Bergen' },
-        { id: 'for', name: '🌲 Bossen' },
-        { id: 'pra', name: '🌾 Prairie' },
-        { id: 'wet', name: '💧 Moeras' },
-        { id: 'riv', name: '🌊 Rivieren' }
-    ];
-
-    let config = JSON.parse(localStorage.getItem('cascadia_config')) || { players: 2, landmarks: false };
-    let savedScores = JSON.parse(localStorage.getItem('cascadia_scores')) || {};
-    let savedNames = JSON.parse(localStorage.getItem('cascadia_names')) || {};
-
-    function initApp() {
-        document.getElementById('playerCount').value = config.players;
-        document.getElementById('useLandmarks').checked = config.landmarks;
-
-        const numPlayers = config.players;
-        const useLandmarks = config.landmarks;
-        const table = document.getElementById('scoreTable');
-        
-        table.style.gridTemplateColumns = `165px repeat(${numPlayers}, 1fr)`;
-        
-        let html = '';
-        html += `<div class="cell header-cell">Categorie</div>`;
-        for (let i = 1; i <= numPlayers; i++) {
-            let name = savedNames[`p${i}`] || `Speler ${i}`;
-            html += `<div class="cell header-cell"><input type="text" class="name-input" data-player="p${i}" value="${name}" oninput="saveName(this)"></div>`;
-        }
-
-        // Wildlife
-        html += `<div class="cell section-header">Dierkaarten</div>`;
-        wildlife.forEach((cat, index) => {
-            html += `<div class="cell label-cell">${cat.name}</div>`;
-            for (let i = 1; i <= numPlayers; i++) {
-                let val = savedScores[`p${i}_wl_${index}`] ?? 0;
-                html += `<div class="cell"><input type="number" inputmode="numeric" pattern="[0-9]*" class="score-input p${i}" data-key="p${i}_wl_${index}" value="${val}" min="0" oninput="updateScore(this)" onfocus="clearZero(this)" onblur="restoreZero(this)"></div>`;
-            }
-        });
-
-        // Gebieden
-        html += `<div class="cell section-header">Leefgebieden (1 pnt/tegel)</div>`;
-        habitats.forEach((cat, index) => {
-            html += `<div class="cell label-cell">${cat.name}</div>`;
-            for (let i = 1; i <= numPlayers; i++) {
-                let val = savedScores[`p${i}_hab_${cat.id}`] ?? 0;
-                html += `<div class="cell"><input type="number" inputmode="numeric" pattern="[0-9]*" class="score-input p${i} hab-size" data-hab="${cat.id}" data-key="p${i}_hab_${cat.id}" value="${val}" min="0" oninput="updateScore(this)" onfocus="clearZero(this)" onblur="restoreZero(this)"></div>`;
-            }
-        });
-
-        // Landmarks
-        if (useLandmarks) {
-            html += `<div class="cell section-header">Landmarks</div>`;
-            html += `<div class="cell label-cell">🏛 Landmark Fiches</div>`;
-            for (let i = 1; i <= numPlayers; i++) {
-                let val = savedScores[`p${i}_lm_f`] ?? 0;
-                html += `<div class="cell"><input type="number" inputmode="numeric" pattern="[0-9]*" class="score-input p${i}" data-key="p${i}_lm_f" value="${val}" min="0" oninput="updateScore(this)" onfocus="clearZero(this)" onblur="restoreZero(this)"></div>`;
-            }
-            html += `<div class="cell label-cell">📜 Landmark Kaarten</div>`;
-            for (let i = 1; i <= numPlayers; i++) {
-                let val = savedScores[`p${i}_lm_k`] ?? 0;
-                html += `<div class="cell"><input type="number" inputmode="numeric" pattern="[0-9]*" class="score-input p${i}" data-key="p${i}_lm_k" value="${val}" min="0" oninput="updateScore(this)" onfocus="clearZero(this)" onblur="restoreZero(this)"></div>`;
-            }
-        }
-
-        // Bonussen
-        html += `<div class="cell section-header">Grootste Gebied Bonussen</div>`;
-        html += `<div class="cell label-cell">Bonus Totaal</div>`;
-        for (let i = 1; i <= numPlayers; i++) {
-            html += `<div class="cell"><input type="number" id="bonus-p${i}" class="bonus-input" value="0" readonly></div>`;
-        }
-
-        // Natuur
-        html += `<div class="cell section-header">Natuur</div>`;
-        html += `<div class="cell label-cell">🌲 Natuurfiches</div>`;
-        for (let i = 1; i <= numPlayers; i++) {
-            let val = savedScores[`p${i}_nature`] ?? 0;
-            html += `<div class="cell"><input type="number" inputmode="numeric" pattern="[0-9]*" class="score-input p${i}" data-key="p${i}_nature" value="${val}" min="0" oninput="updateScore(this)" onfocus="clearZero(this)" onblur="restoreZero(this)"></div>`;
-        }
-
-        // Totaal
-        html += `<div class="cell section-header">Resultaat</div>`;
-        html += `<div class="cell label-cell total-label">EINDTOTAAL</div>`;
-        for (let i = 1; i <= numPlayers; i++) {
-            html += `<div class="cell total-cell"><input type="number" id="total-p${i}" value="0" readonly></div>`;
-        }
-
-        table.innerHTML = html;
-        buildMobileTotals();
-        calculate();
-    }
-
-    function buildMobileTotals() {
-        const container = document.getElementById('mobileTotals');
-        let html = '';
-        for (let i = 1; i <= config.players; i++) {
-            let name = savedNames[`p${i}`] || `Speler ${i}`;
-            html += `
-                <div class="total-bubble">
-                    <span class="name" id="mob-name-p${i}">${name}</span>
-                    <span class="score" id="mob-total-p${i}">0</span>
-                </div>
-            `;
-        }
-        container.innerHTML = html;
-    }
-
-    function changePlayerCount() {
-        config.players = parseInt(document.getElementById('playerCount').value);
-        localStorage.setItem('cascadia_config', JSON.stringify(config));
-        initApp();
-    }
-
-    function toggleLandmarks() {
-        config.landmarks = document.getElementById('useLandmarks').checked;
-        localStorage.setItem('cascadia_config', JSON.stringify(config));
-        initApp();
-    }
-
-    function toggleLandmarksFromLabel(e) {
-        if(e.target.tagName !== 'INPUT') {
-            const cb = document.getElementById('useLandmarks');
-            cb.checked = !cb.checked;
-            toggleLandmarks();
-        }
-    }
-
-    function saveName(el) {
-        savedNames[el.dataset.player] = el.value;
-        localStorage.setItem('cascadia_names', JSON.stringify(savedNames));
-        
-        // Update direct de naam in de mobiele balk onderaan
-        const mobName = document.getElementById(`mob-name-${el.dataset.player}`);
-        if(mobName) mobName.textContent = el.value || `Speler ${el.dataset.player.charAt(1)}`;
-    }
-
-    function updateScore(el) {
-        savedScores[el.dataset.key] = parseInt(el.value) || 0;
-        localStorage.setItem('cascadia_scores', JSON.stringify(savedScores));
-        calculate();
-    }
-
-    function clearZero(el) { if (el.value === "0") el.value = ""; }
-    function restoreZero(el) { if (el.value === "") el.value = "0"; }
-
-    function calculate() {
-        const numPlayers = config.players;
-        let playerBonuses = Array(numPlayers).fill(0);
-
-        habitats.forEach(hab => {
-            let scores = [];
-            for (let i = 1; i <= numPlayers; i++) {
-                let el = document.querySelector(`.p${i}.hab-size[data-hab="${hab.id}"]`);
-                let val = el ? parseInt(el.value) || 0 : 0;
-                scores.push({ player: i - 1, score: val });
-            }
-
-            if (scores.some(s => s.score > 0)) {
-                let sorted = [...scores].sort((a, b) => b.score - a.score);
-                if (numPlayers === 2) {
-                    if (sorted[0].score > sorted[1].score) playerBonuses[sorted[0].player] += 2;
-                    else if (sorted[0].score === sorted[1].score) { playerBonuses[0] += 1; playerBonuses[1] += 1; }
-                } else {
-                    let firstScore = sorted[0].score;
-                    let firstPlacePlayers = sorted.filter(s => s.score === firstScore);
-                    if (firstPlacePlayers.length > 1) {
-                        firstPlacePlayers.forEach(p => playerBonuses[p.player] += 2);
-                    } else {
-                        playerBonuses[sorted[0].player] += 3;
-                        let secondScore = (sorted[1]) ? sorted[1].score : 0;
-                        if (secondScore > 0) {
-                            let secondPlacePlayers = sorted.filter(s => s.score === secondScore);
-                            if (secondPlacePlayers.length === 1) playerBonuses[sorted[1].player] += 1;
-                        }
-                    }
-                }
-            }
-        });
-
-        for (let i = 1; i <= numPlayers; i++) {
-            let bonusEl = document.getElementById(`bonus-p${i}`);
-            if (bonusEl) bonusEl.value = playerBonuses[i-1];
-            
-            let total = playerBonuses[i-1];
-            document.querySelectorAll(`.p${i}.score-input`).forEach(input => {
-                total += parseInt(input.value) || 0;
-            });
-            
-            // Update tabel totaal
-            let totalEl = document.getElementById(`total-p${i}`);
-            if (totalEl) totalEl.value = total;
-
-            // Update mobiele sticky balk totaal
-            let mobTotalEl = document.getElementById(`mob-total-p${i}`);
-            if (mobTotalEl) mobTotalEl.textContent = total;
-        }
-    }
-
-    function resetScores() {
-        if(confirm("Weet je zeker dat je alle scores wilt resetten naar 0?")) {
-            savedScores = {};
-            localStorage.setItem('cascadia_scores', JSON.stringify(savedScores));
-            document.querySelectorAll('.score-input').forEach(input => input.value = 0);
-            calculate();
-        }
-    }
-
-    initApp();
-</script>
-
+    <script src="app.js"></script>
 </body>
 </html>
