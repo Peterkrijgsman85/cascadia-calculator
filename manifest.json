@@ -1,8 +1,12 @@
 {
+  "id": "cascadia-score-companion",
   "name": "Cascadia Score Companion",
   "short_name": "Cascadia",
-  "start_url": ".",
+  "description": "Officiële stapsgewijze puntentelling voor het bordspel Cascadia.",
+  "lang": "nl-NL",
+  "start_url": "./index.html",
   "display": "standalone",
+  "orientation": "portrait",
   "background_color": "#f4f7f6",
   "theme_color": "#1e293b",
   "icons": [
@@ -15,6 +19,12 @@
       "src": "icons/icon-512.png",
       "sizes": "512x512",
       "type": "image/png"
+    },
+    {
+      "src": "icons/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
     }
   ]
 }

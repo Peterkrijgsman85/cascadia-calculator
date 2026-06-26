@@ -121,7 +121,6 @@ button {
   cursor: pointer;
   user-select: none;
   transition: all 0.2s ease;
-  /* CRUCIAL: Stopt de iOS double-tap zoom op alle knoppen! */
   touch-action: manipulation;
 }
 
@@ -289,50 +288,51 @@ button {
   margin-top: -2px;
 }
 
-/* --- FOOTER / SCOREBOARD --- */
+/* --- FOOTER SCOREBOARD CLEAN FIX --- */
 .game-footer {
   position: fixed;
   bottom: 0;
   left: 0;
   right: 0;
-  background: var(--primary);
-  padding: 12px 16px;
-  box-shadow: 0 -4px 20px rgba(0,0,0,0.1);
-  backdrop-filter: blur(8px);
-  z-index: 10;
+  background: #1e293b; /* Donkerblauw */
+  padding: 10px 16px;
+  box-shadow: 0 -2px 10px rgba(0,0,0,0.2);
+  z-index: 1000;
+  display: flex;
+  justify-content: center;
 }
+
 .mini-scoreboard {
   display: flex;
   gap: 8px;
   overflow-x: auto;
   max-width: 500px;
-  margin: 0 auto;
+  width: 100%;
+  padding-bottom: 2px;
+  scrollbar-width: none; /* Firefox */
+}
+
+.mini-scoreboard::-webkit-scrollbar {
+  display: none; /* Chrome/Safari */
+}
+
+.mini-badge {
+  background: rgba(255, 255, 255, 0.15);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  padding: 4px 10px;
+  border-radius: 12px;
+  color: #f8fafc;
+  font-size: 11px;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  gap: 6px;
   white-space: nowrap;
 }
-.mini-scoreboard::-webkit-scrollbar {
-  display: none;
-}
-.mini-player-pill {
-  background: rgba(255,255,255,0.1);
-  padding: 6px 14px;
-  border-radius: 20px;
-  color: white;
-  font-size: 13px;
-  display: flex;
-  gap: 8px;
-  align-items: center;
-}
-.mini-player-pill.leading {
-  background: var(--category-color);
-  box-shadow: 0 0 10px rgba(255,255,255,0.2);
-  border: 1px solid rgba(255,255,255,0.3);
-}
-.mini-name {
-  font-weight: 500;
-  opacity: 0.9;
-}
-.mini-score {
-  font-weight: 800;
+
+.mini-badge-score {
+  color: #fbbf24; /* Goud voor de score */
+  margin-left: 2px;
 }
 
 /* --- RESULT & LEADERBOARD --- */
@@ -364,6 +364,7 @@ button {
   justify-content: center;
   font-size: 13px;
   font-weight: 700;
+  color: var(--text-muted);
 }
 .winner-row {
   background: #fef08a;
@@ -400,6 +401,7 @@ button {
   border-radius: 12px;
   border: 1px solid var(--border-color);
   background: white;
+  -webkit-overflow-scrolling: touch;
 }
 .matrix-table {
   width: 100%;
@@ -485,7 +487,6 @@ button {
 .rules-body ul { padding-left: 20px; }
 .rules-body li { margin-bottom: 4px; }
 
-
 /* Zwevende tandwiel/info knop op het setup scherm */
 .btn-info-floating {
   position: absolute;
@@ -508,12 +509,11 @@ button {
   background: var(--bg-main);
 }
 
-/* Prullenbak knop mooi geïntegreerd naast de hoofdaanwijzer */
 .btn-reset-inline {
   background: #fee2e2;
   border: 1px solid #fca5a5;
   width: 54px;
-  height: 54px; /* Zelfde hoogte als de btn-primary */
+  height: 54px;
   border-radius: 12px;
   font-size: 20px;
   display: flex;
@@ -525,4 +525,117 @@ button {
 .btn-reset-inline:active {
   transform: scale(0.95);
   background: #fca5a5;
+}
+
+/* ==========================================================================
+   NIEUW TOEGEVOEGDE KLASSEN VOOR DE INLINE-STYLING VERVANGING
+   ========================================================================== */
+
+/* Layout & Spacing Helpers */
+.setup-screen { position: relative; }
+.header-spacer { width: 44px; }
+.mt-24 { margin-top: 24px; }
+
+/* Custom Setup Cards & Toggles */
+.toggle-card { display: flex; align-items: center; justify-content: space-between; padding: 16px; }
+.toggle-label-wrap { display: flex; flex-direction: column; }
+.toggle-desc { font-size: 12px; color: var(--text-muted); }
+
+/* Landmarks Switch */
+.switch-container { position: relative; display: inline-block; width: 50px; height: 28px; }
+.switch-container input { opacity: 0; width: 0; height: 0; }
+.slider-toggle { 
+  position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; 
+  background-color: #cbd5e1; transition: .4s; border-radius: 34px; 
+}
+.slider-toggle:before {
+  position: absolute; content: ""; height: 20px; width: 20px; left: 4px; bottom: 4px;
+  background-color: white; transition: .4s; border-radius: 50%;
+}
+input:checked + .slider-toggle { background-color: #14532d; }
+input:checked + .slider-toggle:before { transform: translateX(22px); }
+
+/* Dynamische Buttons (gebruiken category-color uit root) */
+.btn-dynamic { background: var(--category-color); box-shadow: none; margin-bottom: 0; }
+.btn-dynamic-flex { flex: 1; }
+.btn-full-reset { width: 100%; padding: 16px; border-radius: 12px; }
+.game-action-row { margin-top: 24px; display: flex; gap: 12px; }
+
+/* Winnaar & Leaderboard Kaarten */
+.winner-card { background: linear-gradient(135deg, #fef08a 0%, #fefcbf 100%); border: 2px solid #eab308; padding: 20px; border-radius: 16px; display: flex; align-items: center; justify-content: space-between; margin-bottom: 16px; box-shadow: 0 4px 6px -1px rgba(234, 179, 8, 0.2); }
+.winner-info { display: flex; align-items: center; gap: 16px; }
+.winner-icon { font-size: 32px; }
+.winner-name { margin: 0; font-size: 20px; font-weight: 700; color: #854d0e; }
+.winner-subtitle { margin: 2px 0 0 0; font-size: 12px; color: #a16207; }
+.winner-score { font-size: 24px; font-weight: 800; color: #854d0e; }
+.winner-score span { font-size: 14px; font-weight: 500; }
+
+.leaderboard-card { background: white; border: 1px solid var(--border-color); padding: 14px 16px; border-radius: 12px; display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px; }
+.leaderboard-info { display: flex; align-items: center; gap: 12px; }
+.leaderboard-name { margin: 0; font-size: 16px; font-weight: 600; }
+.leaderboard-score { font-size: 18px; font-weight: 700; color: var(--text-main); }
+.leaderboard-score span { font-size: 12px; font-weight: 400; color: var(--text-muted); }
+
+/* Resultaten Tabel (Geïntegreerd met je matrix-table) */
+.result-details-card { margin-top: 24px; padding: 16px; background: white; border-radius: 16px; border: 1px solid var(--border-color); }
+.result-details-card .section-label { font-weight: 700; font-size: 13px; text-transform: uppercase; letter-spacing: 0.05em; color: var(--text-muted); margin-bottom: 12px; }
+
+.result-table { width: 100%; border-collapse: collapse; font-size: 14px; text-align: left; }
+.result-table th { padding: 8px 4px; font-weight: 600; color: var(--text-muted); border-bottom: 2px solid var(--border-color); }
+.result-table td { padding: 8px 4px; }
+.result-table th.text-right, .result-table td.text-right { text-align: right; }
+.result-table td.text-right { font-weight: 500; }
+
+.result-table tr.row-item { border-bottom: 1px solid var(--border-color); }
+.result-table .td-icon-wrap { display: flex; align-items: center; gap: 6px; }
+
+.result-table tr.row-bonus { border-bottom: 1px solid var(--border-color); background: #fffbeb; }
+.result-table tr.row-bonus td { font-weight: 600; color: #b45309; }
+
+.result-table tr.row-total { font-weight: bold; background: var(--bg-main); border-top: 2px solid var(--border-color); }
+.result-table tr.row-total td { padding: 12px 4px; }
+.result-table tr.row-total td.total-score { color: var(--category-color); font-size: 15px; }
+
+/* Spelregels Scherm */
+.rules-scroll-area { display: flex; flex-direction: column; gap: 16px; }
+.rules-list { margin: 8px 0; padding-left: 20px; line-height: 1.5; }
+.rules-list li { margin-bottom: 6px; }
+.rules-text { margin: 6px 0 12px 0; line-height: 1.4; font-size: 14px; }
+.rules-text.mt-12 { margin-top: 12px; }
+.rules-footer { margin-top: 20px; }
+
+/* Installatie Banner */
+.install-banner {
+    background: #e0f2fe;
+    border: 1px solid #bae6fd;
+    border-radius: 12px;
+    padding: 16px;
+    margin-bottom: 20px;
+    display: none; /* Standaard verborgen */
+}
+.install-banner p { margin: 0 0 10px 0; font-size: 14px; color: #0369a1; }
+.btn-install { 
+    background: #0284c7; color: white; border: none; padding: 10px 16px; 
+    border-radius: 8px; font-weight: 600; cursor: pointer; width: 100%;
+}
+
+/* PWA Banner Styling */
+.pwa-banner { 
+    display: flex; 
+    align-items: flex-start; 
+    gap: 15px; 
+    border: 2px solid #0284c7; 
+    background: #f0f9ff; 
+    margin-bottom: 20px;
+}
+.pwa-icon { font-size: 2.2rem; line-height: 1; margin-top: 5px; }
+.pwa-text h3 { margin: 0 0 5px 0; font-size: 1.05rem; color: #0369a1; }
+.pwa-text p { margin: 0 0 10px 0; font-size: 0.9rem; color: #334155; line-height: 1.4; }
+.ios-instruction { 
+    font-size: 0.85rem; 
+    background: white; 
+    padding: 10px; 
+    border-radius: 8px; 
+    border: 1px solid #bae6fd;
+    color: #0369a1;
 }

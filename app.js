@@ -37,6 +37,29 @@ const allCategories = [
 
 let categories = [];
 
+/* ---------------- PWA INSTALLATION ---------------- */
+let deferredPrompt;
+
+window.addEventListener('beforeinstallprompt', (e) => {
+  e.preventDefault();
+  deferredPrompt = e;
+  // Optioneel: render() opnieuw aanroepen om de install-knop te tonen
+  render(); 
+});
+
+function installApp() {
+  if (deferredPrompt) {
+    deferredPrompt.prompt();
+    deferredPrompt.userChoice.then((choiceResult) => {
+      if (choiceResult.outcome === 'accepted') {
+        console.log('App geinstalleerd');
+      }
+      deferredPrompt = null;
+      render(); // Verberg de knop na actie
+    });
+  }
+}
+
 /* ---------------- LOCAL STORAGE ---------------- */
 function saveState() {
   localStorage.setItem("cascadia_score_state", JSON.stringify(state));
@@ -290,9 +313,33 @@ function render() {
 }
 
 function renderSetup(app) {
+  // Bepaal of we op iOS zitten
+  const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
+  
+  // Toon banner als installatie mogelijk is (Android) OF als het iOS is (voor instructie)
+  const showBanner = deferredPrompt || isIOS;
+
   app.innerHTML = `
-    <div class="setup-screen core-container" style="position: relative;">
+    <div class="setup-screen core-container">
       <button class="btn-info-floating" onclick="openRules()" title="Bekijk spelregels">⚙️</button>
+
+      ${showBanner ? `
+        <div class="card pwa-banner">
+          <div class="pwa-icon">📱</div>
+          <div class="pwa-text">
+            <h3>Zet Cascadia Companion op je beginscherm</h3>
+            <p>Installeer de app voor snelle toegang en een optimale schermervaring.</p>
+            
+            ${isIOS ? `
+              <div class="ios-instruction">
+                Tik op de <strong>Deel-knop</strong> (pijltje omhoog) onderin en kies <strong>"Zet op beginscherm"</strong>.
+              </div>
+            ` : `
+              <button class="btn-primary" onclick="installApp()">Voeg toe aan beginscherm</button>
+            `}
+          </div>
+        </div>
+      ` : ''}
 
       <header class="hero-header">
         <span class="hero-icon">🏔</span>
@@ -312,14 +359,14 @@ function renderSetup(app) {
         </div>
       </div>
 
-      <div class="card" style="display: flex; align-items: center; justify-content: space-between; padding: 16px;">
-        <div>
+      <div class="card toggle-card">
+        <div class="toggle-label-wrap">
           <label class="section-label" style="margin-bottom: 2px;">Landmarks Uitbreiding</label>
-          <span style="font-size: 12px; color: var(--text-muted);">Voegt kaarten en fiches toe</span>
+          <span class="toggle-desc">Voegt kaarten en fiches toe</span>
         </div>
-        <label class="switch-container" style="position: relative; display: inline-block; width: 50px; height: 28px;">
-          <input type="checkbox" ${state.useLandmarks ? 'checked' : ''} onchange="toggleLandmarks()" style="opacity: 0; width: 0; height: 0;">
-          <span class="slider-toggle" style="position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background-color: ${state.useLandmarks ? '#14532d' : '#cbd5e1'}; transition: .3s; border-radius: 34px;"></span>
+        <label class="switch-container">
+          <input type="checkbox" ${state.useLandmarks ? 'checked' : ''} onchange="toggleLandmarks()">
+          <span class="slider-toggle"></span>
         </label>
       </div>
 
@@ -349,13 +396,10 @@ function renderSetup(app) {
 function renderGame(app) {
   const c = categories[state.step];
   document.documentElement.style.setProperty('--category-color', c.color);
-
-  // Bepaal de dynamische stapgrootte op basis van de geselecteerde categorie
   const quickAmt = c.quickAdd || 5;
 
   app.innerHTML = `
     <div class="game-screen core-container">
-      
       <header class="step-header">
         <button class="btn-back" onclick="prev()" ${state.step === 0 ? 'disabled' : ''}>←</button>
         <div class="step-title">
@@ -363,7 +407,7 @@ function renderGame(app) {
           <h2>${c.name}</h2>
           <span class="step-counter">${state.step + 1} / ${categories.length}</span>
         </div>
-        <div style="width: 44px;"></div>
+        <div class="header-spacer"></div>
       </header>
 
       <div class="scoring-list">
@@ -372,7 +416,6 @@ function renderGame(app) {
           return `
             <div class="player-score-card">
               <span class="player-name">${p.name}</span>
-              
               <div class="stepper-control">
                 <button class="btn-step" onclick="adjustScore('${p.name}', '${c.id}', -1)">−</button>
                 <div class="score-display-wrapper" onclick="adjustScore('${p.name}', '${c.id}', ${quickAmt})">
@@ -386,8 +429,8 @@ function renderGame(app) {
         }).join("")}
       </div>
 
-      <div class="game-action-row" style="margin-top: 24px; display: flex; gap: 12px;">
-        <button class="btn-primary" onclick="next()" style="background: var(--category-color); box-shadow: none; margin-bottom: 0; flex: 1;">
+      <div class="game-action-row">
+        <button class="btn-primary btn-dynamic btn-dynamic-flex" onclick="next()">
           ${state.step === categories.length - 1 ? 'Bekijk Einduitslag 🏆' : 'Volgende Categorie →'}
         </button>
         <button class="btn-reset-inline" onclick="resetGame()" title="Spel resetten">🗑️</button>
@@ -408,17 +451,13 @@ function updateMiniScoreboard() {
 
   const sorted = [...state.players].sort((a, b) => calculateTotal(b.name) - calculateTotal(a.name));
 
-  board.innerHTML = `
-    <div class="mini-score-badge-row" style="display: flex; gap: 8px; overflow-x: auto; padding: 4px 0; width: 100%; justify-content: center;">
-      ${sorted.map((p, index) => `
-        <div class="mini-badge" style="background: white; border: 1px solid var(--border-color); padding: 6px 12px; border-radius: 20px; font-size: 13px; font-weight: 600; display: flex; align-items: center; gap: 4px; white-space: nowrap;">
-          <span style="color: var(--text-muted); font-size: 11px;">#${index + 1}</span>
-          <span>${p.name}:</span>
-          <span style="color: var(--category-color);">${calculateTotal(p.name)}pt</span>
-        </div>
-      `).join("")}
+  board.innerHTML = sorted.map((p, index) => `
+    <div class="mini-badge">
+      <span class="mini-badge-rank">#${index + 1}</span>
+      <span class="mini-name">${p.name}</span>
+      <span class="mini-badge-score">${calculateTotal(p.name)}</span>
     </div>
-  `;
+  `).join("");
 }
 
 function renderResult(app) {
@@ -446,70 +485,74 @@ function renderResult(app) {
         ${winners.map((p, index) => {
           if (index === 0) {
             return `
-              <div class="leaderboard-card winner" style="background: linear-gradient(135deg, #fef08a 0%, #fefcbf 100%); border: 2px solid #eab308; padding: 20px; border-radius: 16px; display: flex; align-items: center; justify-content: space-between; margin-bottom: 16px; box-shadow: 0 4px 6px -1px rgba(234, 179, 8, 0.2);">
-                <div style="display: flex; align-items: center; gap: 16px;">
-                  <div style="font-size: 32px;">👑</div>
+              <div class="winner-card">
+                <div class="winner-info">
+                  <div class="winner-icon">👑</div>
                   <div>
-                    <h3 style="margin: 0; font-size: 20px; font-weight: 700; color: #854d0e;">${p.name}</h3>
-                    <p style="margin: 2px 0 0 0; font-size: 12px; color: #a16207;">Winnaar van Cascadia!</p>
+                    <h3 class="winner-name">${p.name}</h3>
+                    <p class="winner-subtitle">Winnaar van Cascadia!</p>
                   </div>
                 </div>
-                <div style="font-size: 24px; font-weight: 800; color: #854d0e;">${calculateTotal(p.name)}<span style="font-size: 14px; font-weight: 500;">pt</span></div>
+                <div class="winner-score">${calculateTotal(p.name)}<span>pt</span></div>
               </div>
             `;
           } else {
             return `
-              <div class="leaderboard-card" style="background: white; border: 1px solid var(--border-color); padding: 14px 16px; border-radius: 12px; display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px;">
-                <div style="display: flex; align-items: center; gap: 12px;">
-                  <div style="font-size: 14px; font-weight: 700; background: var(--bg-main); width: 28px; height: 28px; border-radius: 50%; display: flex; align-items: center; justify-content: center; color: var(--text-muted);">${index + 1}</div>
+              <div class="leaderboard-card">
+                <div class="leaderboard-info">
+                  <div class="rank-badge">${index + 1}</div>
                   <div>
-                    <h4 style="margin: 0; font-size: 16px; font-weight: 600;">${p.name}</h4>
+                    <h4 class="leaderboard-name">${p.name}</h4>
                   </div>
                 </div>
-                <div style="font-size: 18px; font-weight: 700; color: var(--text-main);">${calculateTotal(p.name)}<span style="font-size: 12px; font-weight: 400; color: var(--text-muted);">pt</span></div>
+                <div class="leaderboard-score">${calculateTotal(p.name)}<span>pt</span></div>
               </div>
             `;
           }
         }).join("")}
       </div>
 
-      <div class="card" style="margin-top: 24px; padding: 16px; background: white; border-radius: 16px; border: 1px solid var(--border-color);">
-        <label class="section-label" style="display: block; font-weight: 700; font-size: 13px; text-transform: uppercase; tracking: 0.05em; color: var(--text-muted); margin-bottom: 12px;">Gedetailleerd overzicht</label>
-        <div style="overflow-x: auto; -webkit-overflow-scrolling: touch;">
-          <table class="result-table" style="width: 100%; border-collapse: collapse; font-size: 14px; text-align: left;">
+      <div class="card result-details-card">
+        <label class="section-label">Gedetailleerd overzicht</label>
+        <div class="table-wrapper">
+          <table class="result-table">
             <thead>
-              <tr style="border-bottom: 2px solid var(--border-color);">
-                <th style="padding: 8px 4px; font-weight: 600; color: var(--text-muted);">Onderdeel</th>
-                ${state.players.map(p => `<th style="padding: 8px 4px; text-align: right; font-weight: 600; color: var(--text-muted);">${p.name.substring(0,6)}</th>`).join("")}
+              <tr>
+                <th>Onderdeel</th>
+                ${state.players.map(p => `<th class="text-right">${p.name.substring(0,6)}</th>`).join("")}
               </tr>
             </thead>
             <tbody>
               ${categories.map(c => `
-                <tr style="border-bottom: 1px solid var(--border-color);">
-                  <td style="padding: 8px 4px; display: flex; align-items: center; gap: 4px;"><span>${c.icon}</span> <span>${c.name}</span></td>
-                  ${state.players.map(p => `<td style="padding: 8px 4px; text-align: right; font-weight: 500;">${getScore(p.name, c.id)}</td>`).join("")}
+                <tr class="row-item">
+                  <td>
+                    <div class="td-icon-wrap"><span>${c.icon}</span> <span>${c.name}</span></div>
+                  </td>
+                  ${state.players.map(p => `<td class="text-right">${getScore(p.name, c.id)}</td>`).join("")}
                 </tr>
               `).join("")}
               
-              <tr style="border-bottom: 1px solid var(--border-color); background: #fffbeb;">
-                <td style="padding: 8px 4px; display: flex; align-items: center; gap: 4px;"><span>👑</span> <span style="font-weight: 600; color: #b45309;">Gebiedsbonussen</span></td>
-                ${state.players.map(p => `<td style="padding: 8px 4px; text-align: right; font-weight: 600; color: #b45309;">${state.scores[p.name] ? state.scores[p.name]['bonus'] || 0 : 0}</td>`).join("")}
+              <tr class="row-bonus">
+                <td>
+                  <div class="td-icon-wrap"><span>👑</span> <span>Gebiedsbonussen</span></div>
+                </td>
+                ${state.players.map(p => `<td class="text-right">${state.scores[p.name] ? state.scores[p.name]['bonus'] || 0 : 0}</td>`).join("")}
               </tr>
 
-              <tr style="font-weight: bold; background: var(--bg-main); border-top: 2px solid var(--border-color);">
-                <td style="padding: 12px 4px;">Totaal</td>
-                ${state.players.map(p => `<td style="padding: 12px 4px; text-align: right; color: var(--category-color); font-size: 15px;">${calculateTotal(p.name)}</td>`).join("")}
+              <tr class="row-total">
+                <td>Totaal</td>
+                ${state.players.map(p => `<td class="text-right total-score">${calculateTotal(p.name)}</td>`).join("")}
               </tr>
             </tbody>
           </table>
         </div>
       </div>
 
-      <div style="margin-top: 24px; display: flex; flex-direction: column; gap: 12px;">
-        <button class="btn-primary" onclick="restartWithSamePlayers()" style="background: var(--category-color); box-shadow: none; margin-bottom: 0;">
+      <div class="action-buttons mt-24">
+        <button class="btn-primary btn-dynamic" onclick="restartWithSamePlayers()">
           Speel nogmaals 🔄
         </button>
-        <button class="btn-select" onclick="resetGame()" style="width: 100%; padding: 16px; border-radius: 12px;">
+        <button class="btn-select btn-full-reset" onclick="resetGame()">
           Terug naar Setup
         </button>
       </div>
@@ -530,29 +573,29 @@ function renderRulesScreen(app) {
           <h2>Spelregels</h2>
           <span class="step-counter">Cascadia</span>
         </div>
-        <div style="width: 44px;"></div>
+        <div class="header-spacer"></div>
       </header>
 
       <div class="rules-scroll-area">
         <div class="card">
           <label class="section-label">⚙️ Setup: Tegels & Fiches</label>
-          <ul style="margin: 8px 0; padding-left: 20px; line-height: 1.5;">
-            <li style="margin-bottom: 6px;"><strong>2 spelers:</strong> Verwijder 43 tegels (speel met 42). 2 landmark-fiches p.t.</li>
-            <li style="margin-bottom: 6px;"><strong>3 spelers:</strong> Verwijder 22 tegels (speel met 63). 3 landmark-fiches p.t.</li>
-            <li style="margin-bottom: 6px;"><strong>4 spelers:</strong> Gebruik alle 85 basistegels. 4 landmark-fiches p.t.</li>
+          <ul class="rules-list">
+            <li><strong>2 spelers:</strong> Verwijder 43 tegels (speel met 42). 2 landmark-fiches p.t.</li>
+            <li><strong>3 spelers:</strong> Verwijder 22 tegels (speel met 63). 3 landmark-fiches p.t.</li>
+            <li><strong>4 spelers:</strong> Gebruik alle 85 basistegels. 4 landmark-fiches p.t.</li>
             <li><strong>5-6 spelers:</strong> Alle tegels + landmarks uitbreiding. Alle fiches.</li>
           </ul>
         </div>
 
         <div class="card">
           <label class="section-label">🐻 Wildlife & Gebieden</label>
-          <p style="margin: 6px 0 12px 0; line-height: 1.4; font-size: 14px;">
+          <p class="rules-text">
             <strong>Dieren:</strong> Vul de behaalde punten per diersoort in volgens de actieve scorekaart.
           </p>
-          <p style="margin: 12px 0 12px 0; line-height: 1.4; font-size: 14px;">
+          <p class="rules-text mt-12">
             <strong>Grootste Gebied:</strong> Elke tegel in je grootste aaneengesloten terreintype = 1 punt.
           </p>
-          <p style="margin: 12px 0 0 0; line-height: 1.4; font-size: 14px;">
+          <p class="rules-text mt-12">
             <strong>Gebiedsbonussen (Berekent de app automatisch!):</strong><br>
             • <em>3-6 spelers:</em> Grootste krijgt +3, tweede krijgt +1. Gedeelde 1e plaats = +2 p.p.<br>
             • <em>2 spelers:</em> Alleen grootste krijgt +2. Gedeelde 1e plaats = +1 p.p.
@@ -561,27 +604,27 @@ function renderRulesScreen(app) {
 
         <div class="card">
           <label class="section-label">🏛 Landmarks Uitbreiding</label>
-          <p style="margin: 6px 0 12px 0; line-height: 1.4; font-size: 14px;">
+          <p class="rules-text">
             <strong>Plaatsen:</strong> Zodra je een leefgebied van <strong>≥ 5 tegels</strong> groot maakt, mag je direct (vrijwillig) een landmark-fiche van dat type pakken en op de laatst gelegde tegel zetten. Er mag daarna <strong>geen dier</strong> meer op!
           </p>
-          <p style="margin: 12px 0 0 0; line-height: 1.4; font-size: 14px;">
+          <p class="rules-text mt-12">
             <strong>Puntentelling:</strong> Tel de punten van je fysieke landmark-fiches én de behaalde bonuspunten van de landmark-kaarten bij elkaar op.
           </p>
         </div>
 
         <div class="card">
           <label class="section-label">🌲 Natuurfiches & Gelijkspel</label>
-          <p style="margin: 6px 0 12px 0; line-height: 1.4; font-size: 14px;">
+          <p class="rules-text">
             <strong>Natuurfiches:</strong> Elk ongebruikt natuurfiche aan het einde is <strong>1 punt</strong> waard.
           </p>
-          <p style="margin: 12px 0 0 0; line-height: 1.4; font-size: 14px;">
+          <p class="rules-text mt-12">
             <strong>Tie-break:</strong> Bij een gelijkspel wint de speler met de meeste natuurfiches. Is het dan nog gelijk? Dan delen de spelers de winst.
           </p>
         </div>
       </div>
 
-      <div style="margin-top: 20px;">
-        <button class="btn-primary" onclick="closeRules()" style="background: var(--category-color); box-shadow: none;">
+      <div class="rules-footer">
+        <button class="btn-primary btn-dynamic" onclick="closeRules()">
           Terug naar App ←
         </button>
       </div>

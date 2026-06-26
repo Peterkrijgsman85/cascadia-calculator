@@ -3,144 +3,32 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>Cascadia Score App</title>
+    <title>Cascadia Score Companion</title>
     
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="apple-mobile-web-app-title" content="Cascadia">
     
-    <link rel="apple-touch-icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect width='100%25' height='100%25' fill='%232c3e50' rx='20'/%3E%3Ctext y='.72em' x='4' font-size='72'%3E%F0%9F%8F%94%3C/text%3E%3C/svg%3E">
-    <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext y='.88em' font-size='85'%3E%F0%9F%8F%94%3C/text%3E%3C/svg%3E">
-
-    <style>
-        /* CSS Variabelen */
-        :root {
-            --bg-main: #f4f7f6;
-            --text-main: #1e293b;
-            --text-muted: #64748b;
-            --border-color: #cbd5e1;
-            --category-color: #14532d; /* Wordt door JS overschreven per dier/gebied */
-            --card-bg: #ffffff;
-        }
-
-        /* Basis Reset */
-        body { 
-            font-family: system-ui, -apple-system, sans-serif; 
-            background-color: var(--bg-main); 
-            color: var(--text-main); 
-            margin: 0; 
-            padding: 0;
-            -webkit-tap-highlight-color: transparent;
-        }
-
-        /* DE DESKTOP FIX: 
-           Op mobiel pakt dit 100% breedte, op desktop centreert het als een app-scherm
-        */
-        .core-container {
-            width: 100%;
-            min-height: 100vh;
-            box-sizing: border-box;
-            padding: calc(20px + env(safe-area-inset-top)) 15px calc(80px + env(safe-area-inset-bottom)) 15px;
-            margin: 0 auto;
-        }
-
-        @media (min-width: 768px) {
-            .core-container {
-                max-width: 800px;
-                min-height: auto;
-                margin: 40px auto;
-                background: var(--card-bg);
-                border-radius: 20px;
-                box-shadow: 0 10px 30px rgba(0,0,0,0.05);
-                padding: 40px;
-            }
-        }
-
-        /* Typografie & Headers */
-        .hero-header, .step-header { text-align: center; margin-bottom: 30px; position: relative; }
-        .hero-icon { font-size: 3rem; display: block; margin-bottom: 10px; }
-        h1, h2 { margin: 0; color: var(--text-main); }
-        .subtitle { color: var(--text-muted); margin-top: 5px; font-size: 0.9rem; font-weight: 500; text-transform: uppercase; letter-spacing: 1px; }
-        
-        /* Layout Elementen */
-        .card { 
-            background: var(--card-bg); 
-            border: 1px solid var(--border-color); 
-            border-radius: 16px; 
-            padding: 20px; 
-            margin-bottom: 16px; 
-        }
-        .section-label { display: block; font-weight: 700; color: var(--text-main); margin-bottom: 12px; font-size: 1rem; }
-
-        /* Setup Scherm Specifiek */
-        .player-selector-grid { display: flex; gap: 10px; flex-wrap: wrap; }
-        .btn-select { 
-            flex: 1; min-width: 45px; padding: 12px; background: var(--bg-main); 
-            border: 1px solid var(--border-color); border-radius: 10px; 
-            font-weight: 600; cursor: pointer; transition: 0.2s; color: var(--text-main);
-        }
-        .btn-select.active { background: var(--text-main); color: white; border-color: var(--text-main); }
-        
-        .inputs-stack { display: flex; flex-direction: column; gap: 10px; }
-        .input-group { display: flex; align-items: center; gap: 12px; background: var(--bg-main); padding: 8px 12px; border-radius: 10px; }
-        .input-number { font-weight: 800; color: var(--text-muted); font-size: 0.9rem; }
-        input[type="text"] { flex: 1; border: none; background: transparent; font-size: 1rem; font-weight: 600; outline: none; color: var(--text-main); }
-
-        /* Knoppen */
-        .btn-primary { 
-            width: 100%; padding: 16px; background: var(--text-main); color: white; 
-            border: none; border-radius: 12px; font-size: 1.1rem; font-weight: 700; 
-            cursor: pointer; margin-top: 20px; transition: background 0.3s ease;
-        }
-        .btn-info-floating { position: absolute; top: 15px; right: 15px; background: none; border: none; font-size: 1.5rem; cursor: pointer; }
-        .btn-back { background: none; border: none; font-size: 1.5rem; color: var(--text-muted); cursor: pointer; padding: 10px; }
-        .btn-reset-inline { background: #fee2e2; border: 1px solid #fca5a5; border-radius: 12px; padding: 0 20px; font-size: 1.2rem; cursor: pointer; }
-
-        /* Game Scherm Specifiek */
-        .step-header { display: flex; align-items: center; justify-content: space-between; }
-        .cat-badge { font-size: 2rem; display: block; }
-        .step-counter { font-size: 0.8rem; font-weight: 700; color: var(--text-muted); background: var(--bg-main); padding: 4px 10px; border-radius: 20px; display: inline-block; margin-top: 5px; }
-
-        /* DE TWEEDE DESKTOP FIX: Grid layout voor de spelers-kaartjes */
-        .scoring-list { 
-            display: grid; 
-            grid-template-columns: 1fr; 
-            gap: 12px; 
-        }
-        @media (min-width: 600px) {
-            .scoring-list { grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); }
-        }
-
-        .player-score-card { 
-            background: var(--card-bg); border: 2px solid var(--bg-main); 
-            border-radius: 16px; padding: 16px; display: flex; 
-            align-items: center; justify-content: space-between;
-        }
-        .player-name { font-weight: 700; font-size: 1.1rem; }
-        
-        .stepper-control { display: flex; align-items: center; gap: 12px; background: var(--bg-main); padding: 6px; border-radius: 12px; }
-        .btn-step { width: 36px; height: 36px; border-radius: 8px; border: none; background: white; font-size: 1.2rem; font-weight: bold; cursor: pointer; color: var(--text-main); box-shadow: 0 2px 4px rgba(0,0,0,0.05); }
-        .score-display-wrapper { text-align: center; min-width: 50px; cursor: pointer; user-select: none; }
-        .score-value { display: block; font-size: 1.4rem; font-weight: 800; color: var(--category-color); }
-        .tap-hint { display: block; font-size: 0.7rem; color: var(--text-muted); font-weight: 700; }
-
-        /* Mini Scoreboard onderaan */
-        .game-footer { position: fixed; bottom: 0; left: 0; right: 0; background: var(--card-bg); border-top: 1px solid var(--border-color); padding: 10px calc(15px + env(safe-area-inset-left)); z-index: 10; box-shadow: 0 -4px 15px rgba(0,0,0,0.05); }
-        
-        @media (min-width: 768px) {
-            .game-footer { position: static; background: transparent; border: none; box-shadow: none; padding: 20px 0 0 0; }
-        }
-
-        /* Resultaten & Rules */
-        .leaderboard-stack { display: flex; flex-direction: column; gap: 10px; }
-        .result-table th, .result-table td { padding: 10px 6px; }
-        .rules-scroll-area { max-height: 70vh; overflow-y: auto; padding-right: 10px; }
-    </style>
+    <link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+    <link rel="icon" href="icons/icon-192.png">
+    
+    <link rel="manifest" href="manifest.json">
+    
+    <link rel="stylesheet" href="styles.css">
 </head>
 <body>
 
     <div id="app"></div>
 
     <script src="app.js"></script>
+
+    <script>
+      if ('serviceWorker' in navigator) {
+        window.addEventListener('load', () => {
+          navigator.serviceWorker.register('./sw.js')
+            .catch((err) => console.log('Service Worker registratie mislukt:', err));
+        });
+      }
+    </script>
 </body>
 </html>
