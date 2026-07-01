@@ -647,7 +647,10 @@ button {
    ========================================================================== */
 
 /* Layout & Spacing Helpers */
-.setup-screen { position: relative; }
+.setup-screen {
+  position: relative;
+  padding-top: 56px;
+}
 .header-spacer { width: 44px; }
 .mt-24 { margin-top: 24px; }
 
@@ -755,27 +758,35 @@ input:checked + .slider-toggle:before { transform: translateX(22px); }
 
 /* PWA Banner Styling */
 .pwa-banner {
-    position: relative;
     display: flex;
-    align-items: flex-start;
-    gap: 12px;
+    flex-direction: column;
+    gap: 8px;
     border: 1px solid var(--banner-border);
     background: var(--banner-bg);
     border-radius: 12px;
     padding: 12px 14px;
     margin: 4px 0 16px 0;
     box-shadow: 0 2px 8px rgba(2, 132, 199, 0.08);
+    position: relative;
+    z-index: 1;
+}
+.pwa-banner-main {
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+}
+.pwa-banner-actions {
+    display: flex;
+    justify-content: flex-end;
 }
 .pwa-banner-close {
-    position: absolute;
-    top: 8px;
-    right: 8px;
     border: none;
     background: transparent;
     color: var(--banner-text);
-    font-size: 14px;
+    font-size: 0.8rem;
+    font-weight: 700;
     cursor: pointer;
-    padding: 2px;
+    padding: 0;
 }
 .pwa-icon { font-size: 1.4rem; line-height: 1; margin-top: 2px; }
 .pwa-text h3 { margin: 0 0 4px 0; font-size: 0.95rem; color: var(--banner-text); line-height: 1.3; }
