@@ -129,7 +129,8 @@ body {
   
   min-height: 100vh;
   position: relative; /* Cruciaal: houdt de zwevende knop binnen de grenzen */
-  overflow: hidden;
+  overflow-x: hidden;
+  overflow-y: auto;
 }
 
 /* Breedbeeld-overide voor het resultatenscherm als de tabel getoond wordt */
@@ -193,6 +194,10 @@ h1 {
   display: flex;
   flex-direction: column;
   gap: 10px;
+}
+
+.setup-screen .card {
+  margin-bottom: 16px;
 }
 
 .input-group {
@@ -652,6 +657,9 @@ button {
 .setup-screen {
   position: relative;
   padding-top: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0;
 }
 .header-spacer { width: 44px; }
 .mt-24 { margin-top: 24px; }
