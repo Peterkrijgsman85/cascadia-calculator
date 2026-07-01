@@ -649,7 +649,7 @@ button {
 /* Layout & Spacing Helpers */
 .setup-screen {
   position: relative;
-  padding-top: 56px;
+  padding-top: 0;
 }
 .header-spacer { width: 44px; }
 .mt-24 { margin-top: 24px; }
@@ -770,23 +770,31 @@ input:checked + .slider-toggle:before { transform: translateX(22px); }
     position: relative;
     z-index: 1;
 }
+.pwa-banner-overlay {
+    margin: 0 0 16px 0;
+    position: absolute;
+    top: calc(12px + env(safe-area-inset-top));
+    left: 20px;
+    right: 20px;
+    z-index: 40;
+}
 .pwa-banner-main {
     display: flex;
     align-items: flex-start;
     gap: 12px;
 }
-.pwa-banner-actions {
-    display: flex;
-    justify-content: flex-end;
-}
 .pwa-banner-close {
+    position: absolute;
+    top: 8px;
+    right: 8px;
     border: none;
     background: transparent;
     color: var(--banner-text);
-    font-size: 0.8rem;
+    font-size: 0.95rem;
     font-weight: 700;
     cursor: pointer;
     padding: 0;
+    line-height: 1;
 }
 .pwa-icon { font-size: 1.4rem; line-height: 1; margin-top: 2px; }
 .pwa-text h3 { margin: 0 0 4px 0; font-size: 0.95rem; color: var(--banner-text); line-height: 1.3; }

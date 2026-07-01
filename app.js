@@ -410,6 +410,26 @@ function renderSetup(app) {
     <div class="setup-screen core-container">
       <button class="btn-info-floating" onclick="openRules()" title="Bekijk spelregels">⚙️</button>
 
+      ${showBanner ? `
+        <div class="pwa-banner pwa-banner-overlay">
+          <div class="pwa-banner-main">
+            <div class="pwa-icon">📱</div>
+            <div class="pwa-text">
+              <h3>Voeg Cascadia Score Companion toe aan je beginscherm</h3>
+              <p>Open de app sneller en gebruik hem alsof het een echte telefoon-app is.</p>
+              ${isIOS ? `
+                <div class="ios-instruction">
+                  Tik op de <strong>Deel-knop</strong> en kies <strong>"Zet op beginscherm"</strong>.
+                </div>
+              ` : `
+                <button class="btn-install" onclick="installApp()">Installeren</button>
+              `}
+            </div>
+          </div>
+          <button class="pwa-banner-close" onclick="dismissInstallBanner()" aria-label="Banner sluiten" title="Sluiten">✕</button>
+        </div>
+      ` : ''}
+
       <header class="hero-header">
         <span class="hero-icon">🏔</span>
         <h1>Cascadia</h1>
@@ -454,28 +474,6 @@ function renderSetup(app) {
           `).join("")}
         </div>
       </div>
-
-      ${showBanner ? `
-        <div class="pwa-banner">
-          <div class="pwa-banner-main">
-            <div class="pwa-icon">📱</div>
-            <div class="pwa-text">
-              <h3>Voeg Cascadia Score Companion toe aan je beginscherm</h3>
-              <p>Open de app sneller en gebruik hem alsof het een echte telefoon-app is.</p>
-              ${isIOS ? `
-                <div class="ios-instruction">
-                  Tik op de <strong>Deel-knop</strong> en kies <strong>"Zet op beginscherm"</strong>.
-                </div>
-              ` : `
-                <button class="btn-install" onclick="installApp()">Installeren</button>
-              `}
-            </div>
-          </div>
-          <div class="pwa-banner-actions">
-            <button class="pwa-banner-close" onclick="dismissInstallBanner()" aria-label="Banner sluiten" title="Sluiten">Sluiten</button>
-          </div>
-        </div>
-      ` : ''}
 
       <button class="btn-primary" onclick="startGame()">
         Start Berekening →
