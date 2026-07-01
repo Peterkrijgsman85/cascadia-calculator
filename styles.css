@@ -77,10 +77,12 @@ html, body {
   width: 100%;
   height: 100%;
   overflow-x: hidden; /* Voorkomt dat je zijwaarts kunt scrollen */
-  overflow-y: hidden; /* Beperk scrollen tot wat echt nodig is */
+  overflow-y: auto; /* Laat de pagina weer scrollen wanneer de inhoud hoger is */
+  -webkit-overflow-scrolling: touch;
 }
 
 body {
+  min-height: 100%;
   font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
   background: var(--bg-main);
   color: var(--text-main);
@@ -130,7 +132,7 @@ body {
   min-height: 100vh;
   position: relative; /* Cruciaal: houdt de zwevende knop binnen de grenzen */
   overflow-x: hidden;
-  overflow-y: auto;
+  overflow-y: visible;
 }
 
 /* Breedbeeld-overide voor het resultatenscherm als de tabel getoond wordt */
@@ -660,6 +662,9 @@ button {
   display: flex;
   flex-direction: column;
   gap: 0;
+  padding-bottom: calc(24px + env(safe-area-inset-bottom));
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
 }
 .header-spacer { width: 44px; }
 .mt-24 { margin-top: 24px; }
