@@ -398,16 +398,16 @@ button {
 /* --- FOOTER SCOREBOARD CLEAN FIX --- */
 .game-footer {
   position: fixed;
-  bottom: 0;
   left: 0;
   right: 0;
+  bottom: 0;
   background: #1e293b; /* Donkerblauw */
-  /* Houdt rekening met de veilige zone aan de onderkant voor iPhones */
-  padding: 10px 16px calc(10px + env(safe-area-inset-bottom)) 16px;
+  padding: 10px 16px max(10px, calc(10px + env(safe-area-inset-bottom))) 16px;
   box-shadow: 0 -2px 10px rgba(0,0,0,0.2);
   z-index: 1000;
   display: flex;
   justify-content: center;
+  min-height: calc(48px + env(safe-area-inset-bottom));
 }
 
 .mini-scoreboard {
