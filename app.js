@@ -9,10 +9,33 @@ let state = {
   ],
   useLandmarks: true, 
   step: 0,
-  scores: {} // Structuur: { "Speler Name": { "cat_id": score } }
+  scores: {}, // Structuur: { "Speler Name": { "cat_id": score } }
+  hideInstallBanner: false
 };
 
 let previousMode = "setup";
+
+function applySystemTheme() {
+  const colorSchemeMedia = window.matchMedia('(prefers-color-scheme: dark)');
+  const prefersDark = colorSchemeMedia.matches;
+  const themeMeta = document.querySelector('meta[name="theme-color"]');
+
+  document.documentElement.dataset.theme = prefersDark ? 'dark' : 'light';
+  document.documentElement.style.colorScheme = prefersDark ? 'dark' : 'light';
+
+  if (themeMeta) {
+    themeMeta.setAttribute('content', prefersDark ? '#020617' : '#f8fafc');
+  }
+}
+
+applySystemTheme();
+
+const colorSchemeMedia = window.matchMedia('(prefers-color-scheme: dark)');
+if (colorSchemeMedia.addEventListener) {
+  colorSchemeMedia.addEventListener('change', applySystemTheme);
+} else if (colorSchemeMedia.addListener) {
+  colorSchemeMedia.addListener(applySystemTheme);
+}
 
 // Volledig gecorrigeerde Cascadia categorieën inclusief dynamische snel-ophoging (quickAdd)
 const allCategories = [
@@ -113,6 +136,12 @@ function toggleLandmarks() {
   render();
 }
 
+function dismissInstallBanner() {
+  state.hideInstallBanner = true;
+  saveState();
+  render();
+}
+
 function openRules() {
   previousMode = state.mode;
   state.mode = "rules";
@@ -182,6 +211,7 @@ function calculateAreaBonuses() {
   state.players.forEach(p => {
     if (!state.scores[p.name]) state.scores[p.name] = {};
     state.scores[p.name]['bonus'] = 0;
+    state.scores[p.name]['bonusBreakdown'] = {};
   });
 
   // Bereken de bonus per specifiek leefgebied
@@ -197,13 +227,20 @@ function calculateAreaBonuses() {
     // Als niemand in dit gebied heeft gescoord, skippen we de bonus
     if (list.length === 0 || list[0].score === 0) return;
 
+    const awardBonus = (playerName, amount) => {
+      if (!state.scores[playerName]) state.scores[playerName] = {};
+      if (!state.scores[playerName]['bonusBreakdown']) state.scores[playerName]['bonusBreakdown'] = {};
+      state.scores[playerName]['bonus'] += amount;
+      state.scores[playerName]['bonusBreakdown'][catId] = (state.scores[playerName]['bonusBreakdown'][catId] || 0) + amount;
+    };
+
     if (isTwoPlayer) {
       // 2 Spelers: Alleen de grootste krijgt +2. Bij gelijkspel allebei +1.
       if (list[0].score === list[1].score) {
-        state.scores[list[0].name]['bonus'] += 1;
-        state.scores[list[1].name]['bonus'] += 1;
+        awardBonus(list[0].name, 1);
+        awardBonus(list[1].name, 1);
       } else {
-        state.scores[list[0].name]['bonus'] += 2;
+        awardBonus(list[0].name, 2);
       }
     } else {
       // 3+ Spelers: Grootste krijgt +3, tweede krijgt +1.
@@ -214,11 +251,11 @@ function calculateAreaBonuses() {
         // Gedeelde eerste plaats: tel 1e (+3) en 2e (+1) plek bij elkaar op en deel door aantal winnaars (afronden naar boven)
         const sharedFirstScore = Math.ceil((3 + 1) / winners.length);
         winners.forEach(w => {
-          state.scores[w.name]['bonus'] += sharedFirstScore;
+          awardBonus(w.name, sharedFirstScore);
         });
       } else {
         // Unieke winnaar krijgt de volle +3
-        state.scores[list[0].name]['bonus'] += 3;
+        awardBonus(list[0].name, 3);
 
         // Bepaal de tweede plaats (moet wel meer dan 0 punten zijn)
         const runnerUpScore = list[1].score;
@@ -226,7 +263,7 @@ function calculateAreaBonuses() {
           const runnersUp = list.filter(p => p.score === runnerUpScore);
           // Gedeelde 2e plaats: (1 punt / aantal spelers) naar boven afgerond blijft altijd 1 punt p.p.
           runnersUp.forEach(r => {
-            state.scores[r.name]['bonus'] += 1;
+            awardBonus(r.name, 1);
           });
         }
       }
@@ -267,6 +304,12 @@ function calculateTotal(playerName) {
   // Tel hier de dynamisch berekende gebiedsbonus bij op
   total += (state.scores[playerName] ? state.scores[playerName]['bonus'] || 0 : 0);
   return total;
+}
+
+function getAreaBonus(playerName, catId) {
+  if (!state.scores[playerName]) return 0;
+  const breakdown = state.scores[playerName]['bonusBreakdown'];
+  return breakdown && breakdown[catId] ? breakdown[catId] : 0;
 }
 
 /* ---------------- SWIPE GESTURES ---------------- */
@@ -360,29 +403,12 @@ function renderSetup(app) {
   // 3. Toon de banner alleen als:
   // - We NIET in standalone modus draaien (want dan is de app al geïnstalleerd)
   // - EN we ofwel een install-prompt hebben (Android) OF we op iOS zitten
-  const showBanner = !isStandalone && (deferredPrompt || isIOS);
+  // - EN de gebruiker hem niet heeft gesloten
+  const showBanner = !isStandalone && !state.hideInstallBanner && (deferredPrompt || isIOS);
 
   app.innerHTML = `
     <div class="setup-screen core-container">
       <button class="btn-info-floating" onclick="openRules()" title="Bekijk spelregels">⚙️</button>
-
-      ${showBanner ? `
-        <div class="card pwa-banner">
-          <div class="pwa-icon">📱</div>
-          <div class="pwa-text">
-            <h3>Zet Cascadia Companion op je beginscherm</h3>
-            <p>Installeer de app voor snelle toegang en een optimale schermervaring.</p>
-            
-            ${isIOS ? `
-              <div class="ios-instruction">
-                Tik op de <strong>Deel-knop</strong> (pijltje omhoog) onderin en kies <strong>"Zet op beginscherm"</strong>.
-              </div>
-            ` : `
-              <button class="btn-primary" onclick="installApp()">Voeg toe aan beginscherm</button>
-            `}
-          </div>
-        </div>
-      ` : ''}
 
       <header class="hero-header">
         <span class="hero-icon">🏔</span>
@@ -429,6 +455,24 @@ function renderSetup(app) {
         </div>
       </div>
 
+      ${showBanner ? `
+        <div class="pwa-banner">
+          <button class="pwa-banner-close" onclick="dismissInstallBanner()" aria-label="Banner sluiten" title="Sluiten">✕</button>
+          <div class="pwa-icon">📱</div>
+          <div class="pwa-text">
+            <h3>Voeg Cascadia Score Companion toe aan je beginscherm</h3>
+            <p>Open de app sneller en gebruik hem alsof het een echte telefoon-app is.</p>
+            ${isIOS ? `
+              <div class="ios-instruction">
+                Tik op de <strong>Deel-knop</strong> en kies <strong>"Zet op beginscherm"</strong>.
+              </div>
+            ` : `
+              <button class="btn-install" onclick="installApp()">Installeren</button>
+            `}
+          </div>
+        </div>
+      ` : ''}
+
       <button class="btn-primary" onclick="startGame()">
         Start Berekening →
       </button>
@@ -473,7 +517,7 @@ function renderGame(app) {
           <h2 id="game-cat-name"></h2>
           <span class="step-counter"><span id="game-step-counter"></span> / ${categories.length}</span>
         </div>
-        <div class="header-spacer"></div>
+        <button class="btn-reset-inline btn-reset-header" onclick="resetGame()" title="Spel resetten">↺ Reset</button>
       </header>
 
       <div class="slider-viewport" id="slider-viewport">
@@ -484,7 +528,6 @@ function renderGame(app) {
 
       <div class="game-action-row">
         <button class="btn-primary btn-dynamic btn-dynamic-flex" id="game-btn-next" onclick="next()"></button>
-        <button class="btn-reset-inline" onclick="resetGame()" title="Spel resetten">🗑️</button>
       </div>
 
       <footer class="game-footer">
@@ -555,6 +598,30 @@ function updateMiniScoreboard() {
 function renderResult(app) {
   document.documentElement.style.setProperty('--category-color', '#14532d');
 
+  const resultSections = [
+    {
+      title: 'Dieren',
+      items: ['bear', 'elk', 'salmon', 'hawk', 'fox']
+    },
+    {
+      title: 'Leefgebieden',
+      items: ['mountains', 'forests', 'prairies', 'swamps', 'rivers']
+    },
+    {
+      title: 'Bonuspunten leefgebieden',
+      items: ['mountains', 'forests', 'prairies', 'swamps', 'rivers'],
+      isBonus: true
+    },
+    {
+      title: 'Natuurfiches',
+      items: ['nature']
+    },
+    {
+      title: 'Landmarks',
+      items: ['landmarks_cards', 'landmarks_tokens']
+    }
+  ];
+
   // Sorteer op totale score. Bij gelijke stand geldt het aantal natuurfiches (nature) als tie-breaker!
   const winners = [...state.players].sort((a, b) => {
     const totalA = calculateTotal(a.name);
@@ -615,21 +682,37 @@ function renderResult(app) {
               </tr>
             </thead>
             <tbody>
-              ${categories.map(c => `
-                <tr class="row-item">
-                  <td>
-                    <div class="td-icon-wrap"><span>${c.icon}</span> <span>${c.name}</span></div>
-                  </td>
-                  ${state.players.map(p => `<td class="text-right">${getScore(p.name, c.id)}</td>`).join("")}
-                </tr>
-              `).join("")}
-              
-              <tr class="row-bonus">
-                <td>
-                  <div class="td-icon-wrap"><span>👑</span> <span>Gebiedsbonussen</span></div>
-                </td>
-                ${state.players.map(p => `<td class="text-right">${state.scores[p.name] ? state.scores[p.name]['bonus'] || 0 : 0}</td>`).join("")}
-              </tr>
+              ${resultSections.map(section => {
+                const rows = section.items.map(catId => {
+                  const category = allCategories.find(c => c.id === catId);
+                  if (section.isBonus) {
+                    return `
+                      <tr class="row-bonus">
+                        <td>
+                          <div class="td-icon-wrap"><span>${category ? category.icon : '🏞️'}</span> <span>${category ? category.name : catId}</span></div>
+                        </td>
+                        ${state.players.map(p => `<td class="text-right">${getAreaBonus(p.name, catId)}</td>`).join("")}
+                      </tr>
+                    `;
+                  }
+
+                  return `
+                    <tr class="row-item">
+                      <td>
+                        <div class="td-icon-wrap"><span>${category ? category.icon : '📌'}</span> <span>${category ? category.name : catId}</span></div>
+                      </td>
+                      ${state.players.map(p => `<td class="text-right">${getScore(p.name, catId)}</td>`).join("")}
+                    </tr>
+                  `;
+                }).join("");
+
+                return `
+                  <tr class="row-group-header">
+                    <td colspan="${state.players.length + 1}">${section.title}</td>
+                  </tr>
+                  ${rows}
+                `;
+              }).join("")}
 
               <tr class="row-total">
                 <td>Totaal</td>
